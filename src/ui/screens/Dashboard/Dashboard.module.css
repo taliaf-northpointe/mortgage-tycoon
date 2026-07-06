@@ -1,0 +1,72 @@
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.topBar {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 14px 24px;
+  background: var(--color-paper);
+  border-bottom: var(--border-soft);
+  box-shadow: var(--shadow-soft);
+}
+
+.dayChip {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-cocoa);
+  background: var(--color-sand);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+}
+
+.money {
+  margin-left: auto;
+  font-weight: 600;
+  font-size: var(--text-h4);
+  color: var(--color-sage);
+}
+
+.body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.copy {
+  max-width: 440px;
+  color: var(--color-cocoa);
+  margin: 0;
+}
+
+.loanCard {
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 16px 24px;
+  min-width: 280px;
+}
+
+.loanCard p {
+  color: var(--color-cocoa);
+  margin: 6px 0 10px;
+}
+
+.stageChip {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--color-paper);
+  background: var(--color-sky);
+  border-radius: var(--radius-pill);
+  padding: 4px 10px;
+}
