@@ -116,12 +116,14 @@ const SOUND_LIBRARY: Record<SoundCueId, AudioAssetDefinition> = {
   buttonClick: { path: '/assets/audio/ui/button-click.wav', category: 'sfx', volume: 0.22 },
   windowOpen: { path: '/assets/audio/ui/window-open.wav', category: 'sfx', volume: 0.16 },
   windowClose: { path: '/assets/audio/ui/window-close.wav', category: 'sfx', volume: 0.14 },
-  menuNavigation: { path: '/assets/audio/ui/menu-navigation.wav', category: 'sfx', volume: 0.16 },
+  // Talia's rule: the plastic-bubble click for every button click; the fast
+  // double-click only where a secondary click is genuinely useful (nav).
+  menuNavigation: { path: '/assets/audio/ui/secondary-click.wav', category: 'sfx', volume: 0.16 },
   notification: { path: '/assets/audio/ui/notification.wav', category: 'sfx', volume: 0.18 },
   checkboxToggle: { path: '/assets/audio/ui/button-click.wav', category: 'sfx', volume: 0.16 },
   sliderMovement: { path: '/assets/audio/ui/button-hover.wav', category: 'sfx', volume: 0.08 },
   dragDrop: { path: '/assets/audio/ui/button-click.wav', category: 'sfx', volume: 0.16 },
-  cardSelection: { path: '/assets/audio/ui/menu-navigation.wav', category: 'sfx', volume: 0.12 },
+  cardSelection: { path: '/assets/audio/ui/button-click.wav', category: 'sfx', volume: 0.14 },
   confirm: { path: '/assets/audio/events/gentle.wav', category: 'sfx', volume: 0.16 },
   cancel: { path: '/assets/audio/ui/window-close.wav', category: 'sfx', volume: 0.12 },
   newCustomerArrived: { path: '/assets/audio/events/gentle.wav', category: 'sfx', volume: 0.2 },
