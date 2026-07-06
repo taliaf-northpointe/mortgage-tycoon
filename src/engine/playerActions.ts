@@ -1,14 +1,21 @@
 /**
- * Player actions on a loan (GDD §3 loan detail popover, GDD §4 customer
- * actions). Pure: each returns a new state, or the ORIGINAL state unchanged
- * when the action isn't allowed — the UI can rely on referential equality.
+ * Player actions on a loan/customer (GDD §3 loan detail popover, GDD §4
+ * customer actions). Pure: each returns a new state, or the ORIGINAL state
+ * unchanged when the action isn't allowed — the UI can rely on referential
+ * equality.
  */
-import { CONTACT_HAPPINESS_BOOST, DOC_DISPLAY_NAME } from './constants';
+import {
+  CONTACT_HAPPINESS_BOOST,
+  CONTACT_TIME_COST_HOURS,
+  CONTACT_TRUST_BOOST,
+  DOC_DISPLAY_NAME,
+  HAPPINESS_MAX,
+  REQUEST_NAG_HAPPINESS_COST,
+  TRUST_MAX,
+} from './constants';
 import { missingDocs, requirementsMet } from './loans';
 import { advanceLoanStage, missingDocsTag } from './tick';
 import type { DocumentKey, GameEvent, GameState } from './types';
-
-const MAX_HAPPINESS = 100;
 
 function pushEvent(state: GameState, category: GameEvent['category'], title: string, detail: string): void {
   const { day, hour } = state.clock;
@@ -16,7 +23,7 @@ function pushEvent(state: GameState, category: GameEvent['category'], title: str
   state.eventLog.push({ id: `evt-${day}-${hour}-${n}`, day, hour, category, title, detail });
 }
 
-/** Ask the customer for a specific missing loan document. */
+/** Ask the customer for one specific missing loan document (loan popover). */
 export function requestDocument(state: GameState, loanId: string, key: DocumentKey): GameState {
   const loan = state.loans[loanId];
   if (!loan || loan.documents[key] !== 'missing') return state;
@@ -37,7 +44,53 @@ export function requestDocument(state: GameState, loanId: string, key: DocumentK
   return s;
 }
 
-/** Send a friendly message (GDD §4 action 3): +happiness, capped. */
+/**
+ * "Request Documents" (GDD §4 action 1, Customer screen): ask for every
+ * missing document at once. Asking again while requests are already out
+ * costs a little happiness — nobody likes being nagged.
+ */
+export function requestAllDocuments(state: GameState, loanId: string): GameState {
+  const loan = state.loans[loanId];
+  if (!loan) return state;
+  const stillMissing = missingDocs(loan).filter((key) => loan.documents[key] === 'missing');
+  const alreadyRequested = missingDocs(loan).some((key) => loan.documents[key] === 'requested');
+  if (stillMissing.length === 0 && !alreadyRequested) return state;
+
+  const s = structuredClone(state);
+  const l = s.loans[loanId];
+  if (!l) return state;
+  const customer = s.customers[l.customerId];
+
+  for (const key of stillMissing) l.documents[key] = 'requested';
+  l.statusTag = l.stage === 'documentCollection' ? missingDocsTag(l) : l.statusTag;
+
+  if (stillMissing.length === 0 && alreadyRequested) {
+    // pure nag — everything was already asked for
+    if (customer) {
+      customer.happiness = Math.max(0, customer.happiness - REQUEST_NAG_HAPPINESS_COST);
+      pushEvent(
+        s,
+        'customers',
+        `${customer.name} is already on it`,
+        `They know! A gentle reminder costs a little goodwill (−${REQUEST_NAG_HAPPINESS_COST} happiness).`,
+      );
+    }
+    return s;
+  }
+
+  if (alreadyRequested && customer) {
+    customer.happiness = Math.max(0, customer.happiness - REQUEST_NAG_HAPPINESS_COST);
+  }
+  pushEvent(
+    s,
+    'customers',
+    `You asked ${customer ? customer.name : 'the customer'} for their documents`,
+    `${stillMissing.length} ${stillMissing.length === 1 ? 'document' : 'documents'} requested — they'll come in first.`,
+  );
+  return s;
+}
+
+/** Send a friendly message (GDD §4 action 3): +happiness, +trust, small time cost. */
 export function contactCustomer(state: GameState, loanId: string): GameState {
   const loan = state.loans[loanId];
   if (!loan) return state;
@@ -45,9 +98,12 @@ export function contactCustomer(state: GameState, loanId: string): GameState {
   if (!customer) return state;
 
   const s = structuredClone(state);
+  const l = s.loans[loanId];
   const c = s.customers[loan.customerId];
-  if (!c) return state;
-  c.happiness = Math.min(MAX_HAPPINESS, c.happiness + CONTACT_HAPPINESS_BOOST);
+  if (!l || !c) return state;
+  c.happiness = Math.min(HAPPINESS_MAX, c.happiness + CONTACT_HAPPINESS_BOOST);
+  c.trust = Math.min(TRUST_MAX, Math.round((c.trust + CONTACT_TRUST_BOOST) * 100) / 100);
+  l.progressHours = Math.max(0, l.progressHours - CONTACT_TIME_COST_HOURS); // the small time cost
 
   pushEvent(
     s,
@@ -59,12 +115,12 @@ export function contactCustomer(state: GameState, loanId: string): GameState {
 }
 
 /**
- * "Move to [next stage]" / "Continue Processing" (GDD §4 action 2):
+ * "Continue Processing" / "Move to [next stage]" (GDD §4 action 2):
  * only when the stage's requirements are met.
  */
 export function moveLoanForward(state: GameState, loanId: string): GameState {
   const loan = state.loans[loanId];
-  if (!loan || loan.stage === 'completed' || !requirementsMet(loan)) return state;
+  if (!loan || loan.stage === 'completed' || loan.delayed || !requirementsMet(loan)) return state;
 
   const s = structuredClone(state);
   const l = s.loans[loanId];
@@ -73,7 +129,29 @@ export function moveLoanForward(state: GameState, loanId: string): GameState {
   return s;
 }
 
-/** Papers the player can still request for this loan. */
+/** "Delay" (GDD §4 action 4): set aside for later — or pick it back up. */
+export function toggleDelay(state: GameState, loanId: string): GameState {
+  const loan = state.loans[loanId];
+  if (!loan || loan.stage === 'completed') return state;
+
+  const s = structuredClone(state);
+  const l = s.loans[loanId];
+  if (!l) return state;
+  l.delayed = !l.delayed;
+  const customer = s.customers[l.customerId];
+  const name = customer ? customer.name : 'The customer';
+
+  if (l.delayed) {
+    l.statusTag = 'Delayed';
+    pushEvent(s, 'alerts', `${name}'s loan is set aside`, 'Nothing will move until you pick it back up — and waiting wears on them.');
+  } else {
+    l.statusTag = l.stage === 'documentCollection' ? missingDocsTag(l) : null;
+    pushEvent(s, 'loans', `${name}'s loan is back on track`, 'Picking up right where you left off.');
+  }
+  return s;
+}
+
+/** Documents the player can still request for this loan. */
 export function requestableDocs(state: GameState, loanId: string): DocumentKey[] {
   const loan = state.loans[loanId];
   if (!loan) return [];

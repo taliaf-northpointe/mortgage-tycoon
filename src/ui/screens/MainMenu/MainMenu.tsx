@@ -10,9 +10,10 @@ import { TownScene } from './TownScene';
 interface MainMenuProps {
   /** Called once a game is running (new or restored) — App shows the office. */
   onEnterGame(): void;
+  onOpenSettings(): void;
 }
 
-export function MainMenu({ onEnterGame }: MainMenuProps) {
+export function MainMenu({ onEnterGame, onOpenSettings }: MainMenuProps) {
   const [view, setView] = useState<'menu' | 'newGame'>('menu');
   const [saveAvailable, setSaveAvailable] = useState(() => hasSave());
   const [notice, setNotice] = useState<string | null>(null);
@@ -78,7 +79,7 @@ export function MainMenu({ onEnterGame }: MainMenuProps) {
               <Button size="lg" onClick={handleContinue} disabled={!saveAvailable}>
                 Continue
               </Button>
-              <Button size="lg" disabled title="Coming in a later milestone">
+              <Button size="lg" onClick={onOpenSettings}>
                 Settings
               </Button>
               <Button size="lg" disabled title="Coming in a later milestone">

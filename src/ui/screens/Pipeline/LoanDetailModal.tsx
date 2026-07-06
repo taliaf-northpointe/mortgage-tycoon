@@ -23,10 +23,12 @@ export function LoanDetailModal({
   loan,
   customer,
   onClose,
+  onOpenCustomer,
 }: {
   loan: Loan;
   customer: Customer | undefined;
   onClose(): void;
+  onOpenCustomer(customerId: string): void;
 }) {
   const requestDocument = useGameStore((s) => s.requestDocument);
   const contactCustomer = useGameStore((s) => s.contactCustomer);
@@ -112,6 +114,11 @@ export function LoanDetailModal({
           )}
           {loan.stage !== 'completed' && (
             <Button onClick={() => contactCustomer(loan.id)}>Contact</Button>
+          )}
+          {customer && (
+            <Button variant="ghost" onClick={() => onOpenCustomer(customer.id)}>
+              View profile
+            </Button>
           )}
           <Button variant="ghost" onClick={onClose}>
             Close

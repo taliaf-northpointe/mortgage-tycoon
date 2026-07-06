@@ -27,7 +27,7 @@
 - [x] M3 — Dashboard shell
 - [x] M4 — Pipeline + loan detail
 - [x] M4.5 — Terminology pivot: authentic mortgage terms, 9-stage workflow, glossary + Learning Center (GDD v2, save v2)
-- [ ] M5 — Customer Profile
+- [x] M5 — Customer Profile (+ audio system groundwork: AudioManager, Settings screen; WAV assets still pending)
 - [ ] M6 — Employees
 - [ ] M7 — Economy + Upgrades + End of Day
 - [ ] M8 — World Map + Tutorial + polish

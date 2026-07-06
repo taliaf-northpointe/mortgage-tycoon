@@ -2,7 +2,7 @@
  * ALL tunable numbers and shared literals live here, nowhere else (TDD §3).
  * Every constant references the GDD/TDD section it comes from.
  */
-import type { DocumentKey, LoanProduct, LoanPurpose, LoanStage, Role, Season } from './types';
+import type { DocumentKey, LoanProduct, LoanPurpose, LoanStage, Role, Season, TraitKey } from './types';
 
 /** GDD §1 */
 export const GAME_TITLE = 'Mortgage Empire';
@@ -116,8 +116,51 @@ export const LOAN_PURPOSE_LABEL: Record<LoanPurpose, string> = {
   refinance: 'Refinance',
 };
 
-/** GDD §4 action 3 — Contact Customer happiness boost (full math lands in M5) */
+/** GDD §4 action 3 — Contact Customer: +happiness, +trust, small time cost */
 export const CONTACT_HAPPINESS_BOOST = 2;
+export const CONTACT_TRUST_BOOST = 0.25;
+export const CONTACT_TIME_COST_HOURS = 1;
+export const TRUST_MAX = 5;
+export const HAPPINESS_MAX = 100;
+
+/**
+ * GDD §4 (M5) — document delivery cadence in Document Collection, in hours
+ * per document. Requested documents arrive faster; prompt/enthusiastic
+ * customers respond faster.
+ */
+export const REQUESTED_DOC_HOURS = 2;
+export const REQUESTED_DOC_HOURS_PROMPT = 1;
+export const UNPROMPTED_DOC_HOURS = 3;
+export const UNPROMPTED_DOC_HOURS_EAGER = 2;
+
+/** GDD §4 action 1 — asking again when requests are already out costs a little happiness */
+export const REQUEST_NAG_HAPPINESS_COST = 2;
+
+/** GDD §4 — happiness rises with successful stages */
+export const STAGE_ADVANCE_HAPPINESS_BOOST = 3;
+
+/** GDD §4 action 4 — happiness decays while a loan sits delayed (applied at day end) */
+export const DELAYED_HAPPINESS_DECAY_PER_DAY = 3;
+
+/** GDD §4 — customer trait display names */
+export const TRAIT_LABEL: Record<TraitKey, string> = {
+  enthusiastic: 'Enthusiastic',
+  detailOriented: 'Detail-oriented',
+  prompt: 'Prompt',
+  impatient: 'Impatient',
+  cautious: 'Cautious',
+  chatty: 'Chatty',
+};
+
+/** GDD §9 — neighborhood display names */
+export const NEIGHBORHOOD_DISPLAY_NAME: Record<string, string> = {
+  oldTown: 'Old Town',
+  sunnyHeights: 'Sunny Heights',
+  riversideVillage: 'Riverside Village',
+  uptownHills: 'Uptown Hills',
+  eastRidge: 'East Ridge',
+  greenValley: 'Green Valley',
+};
 
 /**
  * GDD §4 v2 — which loan documents each purpose needs. Refinance skips several.

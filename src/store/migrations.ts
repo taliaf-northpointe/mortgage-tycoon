@@ -4,7 +4,7 @@
  * FROM; each migration returns data at saveVersion + 1.
  */
 
-export const CURRENT_SAVE_VERSION = 2;
+export const CURRENT_SAVE_VERSION = 3;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -69,8 +69,30 @@ function migrateV1toV2(data: Record<string, unknown>): Record<string, unknown> {
   return next;
 }
 
+/** v2 → v3 (M5 Customer Profile): adds Loan.delayed and Customer.happinessAtWeekStart. */
+function migrateV2toV3(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+
+  const loans = (next['loans'] ?? {}) as Record<string, Record<string, unknown>>;
+  for (const loan of Object.values(loans)) {
+    loan['delayed'] = loan['delayed'] ?? false;
+  }
+
+  const customers = (next['customers'] ?? {}) as Record<string, Record<string, unknown>>;
+  for (const customer of Object.values(customers)) {
+    customer['happinessAtWeekStart'] =
+      customer['happinessAtWeekStart'] ?? customer['happiness'] ?? 100;
+  }
+
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['saveVersion'] = 3;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
+  2: migrateV2toV3,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

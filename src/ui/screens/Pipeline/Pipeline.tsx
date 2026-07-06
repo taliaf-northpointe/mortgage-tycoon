@@ -19,9 +19,10 @@ import styles from './Pipeline.module.css';
 
 interface PipelineProps {
   onBack(): void;
+  onOpenCustomer(customerId: string): void;
 }
 
-export function Pipeline({ onBack }: PipelineProps) {
+export function Pipeline({ onBack, onOpenCustomer }: PipelineProps) {
   const game = useGameStore((s) => s.game);
   const [search, setSearch] = useState('');
   const [selectedLoanId, setSelectedLoanId] = useState<string | null>(null);
@@ -130,6 +131,7 @@ export function Pipeline({ onBack }: PipelineProps) {
           loan={selectedLoan}
           customer={game.customers[selectedLoan.customerId]}
           onClose={() => setSelectedLoanId(null)}
+          onOpenCustomer={onOpenCustomer}
         />
       )}
       {celebrating && <Confetti />}

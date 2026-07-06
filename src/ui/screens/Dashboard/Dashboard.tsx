@@ -14,6 +14,7 @@ import {
   Star,
   Users,
 } from 'lucide-react';
+import { audioManager } from '../../../audio/AudioManager';
 import { DAY_END_HOUR, titleForLevel, WEEKDAYS } from '../../../engine/constants';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
@@ -27,7 +28,7 @@ type Speed = 0 | 1 | 2 | 3;
 interface DashboardProps {
   speed: Speed;
   onSpeedChange(speed: Speed): void;
-  onNavigate(screen: 'pipeline' | 'learning'): void;
+  onNavigate(screen: 'pipeline' | 'learning' | 'audioSettings'): void;
   onExitToMenu(): void;
 }
 
@@ -58,16 +59,29 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
           icon={<FolderKanban size={17} />}
           label="Pipeline"
           badge={activeLoans}
-          onClick={() => onNavigate('pipeline')}
+          onClick={() => {
+            audioManager.playCue('menuNavigation');
+            onNavigate('pipeline');
+          }}
         />
         <NavItem icon={<Sparkles size={17} />} label="Upgrades" soon />
         <NavItem icon={<Map size={17} />} label="Map" soon />
         <NavItem
           icon={<BookOpen size={17} />}
           label="Learning Center"
-          onClick={() => onNavigate('learning')}
+          onClick={() => {
+            audioManager.playCue('menuNavigation');
+            onNavigate('learning');
+          }}
         />
-        <NavItem icon={<Settings size={17} />} label="Settings" soon />
+        <NavItem
+          icon={<Settings size={17} />}
+          label="Settings"
+          onClick={() => {
+            audioManager.playCue('windowOpen');
+            onNavigate('audioSettings');
+          }}
+        />
 
         <div className={styles.sidebarFooter}>
           <div className={styles.playerCard}>

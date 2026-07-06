@@ -1,0 +1,90 @@
+.screen {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, var(--color-cream), var(--color-paper));
+  padding: 32px;
+}
+
+.panel {
+  width: min(760px, 100%);
+  background: rgba(255, 251, 244, 0.96);
+  border: var(--border-soft);
+  box-shadow: var(--shadow-soft);
+  border-radius: var(--radius-xl);
+  padding: 28px;
+  display: grid;
+  gap: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: start;
+  gap: 16px;
+}
+
+.eyebrow {
+  font-size: var(--text-caption);
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  color: var(--color-cocoa);
+  margin: 0 0 8px;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-family: var(--font-heading);
+  font-size: var(--text-h2);
+}
+
+.copy {
+  margin: 0;
+  color: var(--color-cocoa);
+  line-height: 1.5;
+}
+
+.controls {
+  display: grid;
+  gap: 16px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 144px 1fr 48px;
+  align-items: center;
+  gap: 12px;
+}
+
+.label {
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.value {
+  text-align: right;
+  color: var(--color-cocoa);
+  font-weight: 600;
+}
+
+.toggles {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.toggleRow {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: rgba(255, 255, 255, 0.7);
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}

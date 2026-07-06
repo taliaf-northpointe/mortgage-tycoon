@@ -54,11 +54,11 @@ function v1Save() {
   };
 }
 
-describe('save migration v1 → v2 (terminology pivot)', () => {
-  it('upgrades stages, documents, loan type, and roles', () => {
+describe('save migration chain v1 → v3', () => {
+  it('upgrades stages, documents, loan type, roles, and M5 fields', () => {
     const migrated = parseSave(JSON.stringify(v1Save()));
 
-    expect(migrated.meta.saveVersion).toBe(2);
+    expect(migrated.meta.saveVersion).toBe(3);
 
     const loan = migrated.loans['LN-2026-0001'];
     expect(loan).toBeDefined();
@@ -77,6 +77,37 @@ describe('save migration v1 → v2 (terminology pivot)', () => {
 
     expect(migrated.employees['emp-1']?.role).toBe('underwriter');
     expect(migrated.glossary).toEqual({});
+
+    // v2 → v3 additions
+    expect(loan?.delayed).toBe(false);
+  });
+
+  it('v2 → v3 backfills the weekly-trend baseline from current happiness', () => {
+    const save = v1Save() as unknown as Record<string, unknown>;
+    save['customers'] = {
+      'cust-1': {
+        id: 'cust-1',
+        name: 'Sarah Chen',
+        age: 32,
+        buyerTypeLabel: 'First-time Homebuyer',
+        traits: ['prompt'],
+        happiness: 64,
+        trust: 2,
+        portraitSeed: 'sarah-chen',
+        dreamHome: {
+          name: 'Cozy Bungalow',
+          neighborhoodId: 'oldTown',
+          beds: 3,
+          baths: 2,
+          categoryChip: 'Family Home',
+          price: 240000,
+          downPayment: 20000,
+          monthly: 1450,
+        },
+      },
+    };
+    const migrated = parseSave(JSON.stringify(save));
+    expect(migrated.customers['cust-1']?.happinessAtWeekStart).toBe(64);
   });
 
   it('maps every v1 loan type onto the restricted product/purpose set', () => {

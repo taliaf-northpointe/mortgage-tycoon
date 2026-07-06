@@ -48,7 +48,8 @@ export interface Customer {
   buyerTypeLabel: string;
   traits: TraitKey[];
   happiness: number; // 0–100
-  trust: number; // 1–5
+  happinessAtWeekStart: number; // baseline for the "↑ 8 this week" trend chip (M5)
+  trust: number; // 1–5 (fractional internally, bars in UI)
   portraitSeed: string;
   dreamHome: {
     name: string;
@@ -76,6 +77,7 @@ export interface Loan {
   rate: number;
   termYears: 15 | 30;
   progressHours: number; // hours accumulated toward the current stage (TDD §4c)
+  delayed: boolean; // GDD §4 action 4 — set aside; no work happens, happiness decays daily
 }
 
 export interface Employee {
@@ -115,7 +117,7 @@ export interface GlossaryProgress {
 
 export interface GameState {
   meta: {
-    saveVersion: 2;
+    saveVersion: 3;
     playerName: string;
     officeName: string;
     createdAt: string;

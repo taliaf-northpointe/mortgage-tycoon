@@ -118,7 +118,8 @@ interface Customer {
   buyerTypeLabel: string;            // "First-time Homebuyer"
   traits: TraitKey[];                // 2–3; modify patience/response/happiness math
   happiness: number;                 // 0–100
-  trust: number;                     // 1–5
+  happinessAtWeekStart: number;      // baseline for the "↑ 8 this week" trend chip (M5)
+  trust: number;                     // 1–5 (fractional internally, bars in UI)
   portraitSeed: string;              // deterministic procedural portrait
   dreamHome: {
     name: string; neighborhoodId: string; beds: number; baths: number;
@@ -140,6 +141,7 @@ interface Loan {
   rate: number;
   termYears: 15 | 30;
   progressHours: number;             // hours accumulated toward the current stage (§4 rule c)
+  delayed: boolean;                  // GDD §4 action 4 — set aside; no work happens, happiness decays daily (M5)
 }
 
 interface Employee {
@@ -154,7 +156,7 @@ interface Employee {
 }
 
 interface GameState {
-  meta: { saveVersion: 2; playerName: string; officeName: string; createdAt: string };
+  meta: { saveVersion: 3; playerName: string; officeName: string; createdAt: string };
   clock: { day: number; season: 'spring'|'summer'|'fall'|'winter'; weekday: number; hour: number };
   currencies: { coins: number; gems: number; research: number };
   stats: { reputation: number; interestRate: number; xp: number; level: number };
@@ -213,6 +215,7 @@ interface DaySummary {
 - **Manual export/import** as a downloadable `.json` (the End-of-Day "Save" button) so progress survives cleared browser data.
 - `meta.saveVersion` + a `migrations.ts` map keeps old saves loadable as the schema evolves. **Rule:** any change to `GameState` shape requires a migration entry in the same PR.
 - **v1 → v2** (terminology pivot): renames document keys, maps old stages (`documents`→`documentCollection`, `review`→`processing`, `approval`→`underwriting`), splits `Loan.type` into `product`+`purpose` (`firstHome`→FHA·Purchase, `homePurchase`→Conventional·Purchase, `refinance`→Conventional·Refinance, `investment`→Conventional·Purchase), renames the `reviewer` role to `underwriter`, and adds the empty `glossary` map.
+- **v2 → v3** (M5 Customer Profile): adds `Loan.delayed = false` and `Customer.happinessAtWeekStart = happiness`.
 
 ## 6.1 MortgageGlossary service (v2, GDD §4.1)
 

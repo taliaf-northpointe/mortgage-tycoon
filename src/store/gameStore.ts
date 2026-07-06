@@ -5,7 +5,13 @@
 import { create } from 'zustand';
 import { DAY_END_HOUR } from '../engine/constants';
 import { createStarterState } from '../engine/content/starter';
-import { contactCustomer, moveLoanForward, requestDocument } from '../engine/playerActions';
+import {
+  contactCustomer,
+  moveLoanForward,
+  requestAllDocuments,
+  requestDocument,
+  toggleDelay,
+} from '../engine/playerActions';
 import { advanceDay, advanceHour } from '../engine/tick';
 import type { DocumentKey, GameState } from '../engine/types';
 import { loadGame, saveGame, serializeSave } from './saveSystem';
@@ -25,10 +31,12 @@ interface GameStore {
    * the next morning once the working day is over (TDD §4).
    */
   tick(): void;
-  /** GDD §3 loan popover actions */
+  /** GDD §3 loan popover + GDD §4 customer actions */
   requestDocument(loanId: string, key: DocumentKey): void;
+  requestAllDocuments(loanId: string): void;
   contactCustomer(loanId: string): void;
   moveLoan(loanId: string): void;
+  toggleDelay(loanId: string): void;
   /** GDD §4.1 progressive learning */
   unlockTerm(key: string): void;
   learnTerm(key: string): void;
@@ -90,6 +98,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { game } = get();
     if (!game) return;
     const next = moveLoanForward(game, loanId);
+    if (next !== game) set({ game: next });
+  },
+
+  requestAllDocuments(loanId) {
+    const { game } = get();
+    if (!game) return;
+    const next = requestAllDocuments(game, loanId);
+    if (next !== game) set({ game: next });
+  },
+
+  toggleDelay(loanId) {
+    const { game } = get();
+    if (!game) return;
+    const next = toggleDelay(game, loanId);
     if (next !== game) set({ game: next });
   },
 

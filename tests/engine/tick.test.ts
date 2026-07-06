@@ -40,10 +40,11 @@ describe('advanceHour', () => {
     expect(s.clock.hour).toBe(DAY_START_HOUR + 2);
   });
 
-  it('collects one document per hour during Document Collection', () => {
+  it('collects unprompted documents on the trait cadence (Sarah: every 2 hours)', () => {
     let s = createStarterState();
     while (loanOf(s).stage !== 'documentCollection') s = advanceHour(s);
     const before = Object.values(loanOf(s).documents).filter((d) => d === 'collected').length;
+    s = advanceHour(s);
     s = advanceHour(s);
     const after = Object.values(loanOf(s).documents).filter((d) => d === 'collected').length;
     expect(after).toBe(before + 1);
