@@ -6,7 +6,7 @@
 
 import { initialUpgradeStates } from '../engine/upgrades';
 
-export const CURRENT_SAVE_VERSION = 5;
+export const CURRENT_SAVE_VERSION = 6;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -131,11 +131,28 @@ function migrateV4toV5(data: Record<string, unknown>): Record<string, unknown> {
   return next;
 }
 
+/** v5 → v6 (M8 Map + Tutorial): neighborhood.scouted + meta.tutorialDone. */
+function migrateV5toV6(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+
+  const neighborhoods = (next['neighborhoods'] ?? {}) as Record<string, Record<string, unknown>>;
+  for (const hood of Object.values(neighborhoods)) {
+    hood['scouted'] = hood['scouted'] ?? hood['status'] !== 'locked';
+  }
+
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['tutorialDone'] = meta['tutorialDone'] ?? true; // veterans skip it
+  meta['saveVersion'] = 6;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
   2: migrateV2toV3,
   3: migrateV3toV4,
   4: migrateV4toV5,
+  5: migrateV5toV6,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

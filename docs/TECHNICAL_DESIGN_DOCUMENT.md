@@ -157,7 +157,8 @@ interface Employee {
 }
 
 interface GameState {
-  meta: { saveVersion: 5; playerName: string; officeName: string; createdAt: string };
+  meta: { saveVersion: 6; playerName: string; officeName: string; createdAt: string;
+          tutorialDone: boolean };   // M8 — tutorial shows once per save
   clock: { day: number; season: 'spring'|'summer'|'fall'|'winter'; weekday: number; hour: number };
   currencies: { coins: number; gems: number; research: number };
   stats: { reputation: number; interestRate: number; xp: number; level: number };
@@ -166,7 +167,8 @@ interface GameState {
   employees: Record<string, Employee>;
   upgrades: Record<string, 'locked' | 'available' | 'purchased'>;   // 25 ids from GDD §7
   neighborhoods: Record<string, { status: 'locked'|'available'|'branch'|'mainOffice';
-                                  demand: 'low'|'med'|'high'; leads: number }>;
+                                  demand: 'low'|'med'|'high'; leads: number;
+                                  scouted: boolean }>;   // M8 — stats hidden until scouted (GDD §9)
   eventLog: GameEvent[];             // today's events; archived on day end
   achievements: Record<string, { earned: boolean; earnedOnDay?: number }>;
   dayHistory: DaySummary[];          // feeds End-of-Day deltas & charts
@@ -225,6 +227,7 @@ interface DaySummary {
 - **v2 → v3** (M5 Customer Profile): adds `Loan.delayed = false` and `Customer.happinessAtWeekStart = happiness`.
 - **v3 → v4** (M6 Employees): adds `Employee.level = 1`.
 - **v4 → v5** (M7 Economy): adds `todayRevenueByHour` (zeros), populates the `upgrades` map (tier 1 available, rest locked), and backfills the extended `DaySummary` fields on existing history.
+- **v5 → v6** (M8 Map + Tutorial): adds `neighborhood.scouted` (true for non-locked so veterans keep their visible stats) and `meta.tutorialDone = true` for existing saves (only fresh games see the tutorial).
 
 ## 6.1 MortgageGlossary service (v2, GDD §4.1)
 

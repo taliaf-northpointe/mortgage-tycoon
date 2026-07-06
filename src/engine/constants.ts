@@ -295,6 +295,25 @@ export const CX_TRUST_BONUS_PER_TIER = 0.05; // extra trust per Contact
 export const CX_HAPPINESS_BONUS_PER_2_TIERS = 1; // extra happiness per stage advance
 export const OFFICE_MORALE_BONUS_PER_2_TIERS = 1; // extra daily employee recovery
 
+/* ── M8: World Map & Tutorial (GDD §9/§11) ────────────────────────── */
+
+export const MAP_SCREEN_LEVEL = 4; // CEO unlocks the World Map (GDD §10, §13 decision 13)
+export const SCOUTING_COST = 500; // GDD §9 — "cheap information purchase"
+export const BRANCH_LEAD_BONUS = 0.08; // extra daily lead chance per open branch
+export const BRANCH_LOAN_CAP_BONUS = 2; // extra active-loan headroom per branch
+
+/** GDD §13 decision 11 — tutorial completion rewards */
+export const TUTORIAL_XP = 100;
+export const TUTORIAL_RESEARCH = 5;
+
+/*
+ * M8 balancing pass (reviewed 2026-07-06): starting runway is ~21 days of
+ * payroll ($563/day vs $12,000 coins) against ~$3,850 per closed loan every
+ * 3–4 days — tight but fair, per the M7 acceptance. Doc cadences, XP curve
+ * (Level 4 ≈ 8–9 loans), and upgrade costs were reviewed and left as-is;
+ * the only new levers are the branch bonuses above.
+ */
+
 /** New-game starting values (GDD §8 HUD examples; coins are a tunable) */
 export const STARTING_COINS = 12_000;
 export const STARTING_REPUTATION = 50;

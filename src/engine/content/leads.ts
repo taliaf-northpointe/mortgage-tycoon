@@ -4,6 +4,8 @@
  * Deterministic: all randomness flows through the seeded RNG.
  */
 import {
+  BRANCH_LEAD_BONUS,
+  BRANCH_LOAN_CAP_BONUS,
   LEAD_CHANCE_MAX,
   LEAD_CHANCE_MIN,
   LEAD_SPAWN_CHANCE,
@@ -14,6 +16,7 @@ import {
   STARTING_INTEREST_RATE,
 } from '../constants';
 import { awardAchievement } from '../economy';
+import { branchCount } from '../map';
 import { initialDocuments } from '../loans';
 import { mulberry32 } from '../rng';
 import { tiersOwned } from '../upgrades';
@@ -46,23 +49,32 @@ const ARCHETYPES: Archetype[] = [
   { name: 'Sam & Jordan Reyes', age: 36, buyerTypeLabel: 'Growing Family', traits: ['chatty', 'enthusiastic'], product: 'conventional', purpose: 'purchase', amountRange: [300_000, 360_000], home: { name: 'Meadow Edge Ranch', beds: 4, baths: 3, categoryChip: 'Family Home' } },
 ];
 
-const NEIGHBORHOOD_POOL = ['oldTown', 'sunnyHeights', 'riversideVillage'];
+/** Leads dream of homes where you have a presence (GDD §9 expansion loop). */
+function neighborhoodPool(state: { neighborhoods: Record<string, { status: string }> }): string[] {
+  const withPresence = Object.entries(state.neighborhoods)
+    .filter(([, n]) => n.status === 'mainOffice' || n.status === 'branch')
+    .map(([id]) => id);
+  return withPresence.length > 0 ? withPresence : ['oldTown'];
+}
 
 /**
  * Maybe spawn one new lead for the morning (GDD §13 decision 8).
  * Mutates the (already cloned) state. Deterministic per (rngSeed, day).
  */
 export function maybeSpawnLead(state: GameState): void {
+  const branches = branchCount(state);
   const activeLoans = Object.values(state.loans).filter((l) => l.stage !== 'completed').length;
-  if (activeLoans >= MAX_ACTIVE_LOANS) return;
+  if (activeLoans >= MAX_ACTIVE_LOANS + branches * BRANCH_LOAN_CAP_BONUS) return;
 
-  // Marketing upgrades and low interest rates bring more shoppers (GDD §7/§8).
+  // Marketing upgrades, open branches, and low interest rates bring more
+  // shoppers (GDD §7/§8/§9).
   const chance = Math.min(
     LEAD_CHANCE_MAX,
     Math.max(
       LEAD_CHANCE_MIN,
       LEAD_SPAWN_CHANCE +
         MARKETING_LEAD_BONUS_PER_TIER * tiersOwned(state, 'marketing') +
+        branches * BRANCH_LEAD_BONUS +
         (STARTING_INTEREST_RATE - state.stats.interestRate) * RATE_LEAD_SENSITIVITY,
     ),
   );
@@ -96,7 +108,10 @@ export function maybeSpawnLead(state: GameState): void {
     portraitSeed: customerId,
     dreamHome: {
       name: archetype.home.name,
-      neighborhoodId: NEIGHBORHOOD_POOL[rng.int(0, NEIGHBORHOOD_POOL.length - 1)] ?? 'oldTown',
+      neighborhoodId: (() => {
+        const pool = neighborhoodPool(state);
+        return pool[rng.int(0, pool.length - 1)] ?? 'oldTown';
+      })(),
       beds: archetype.home.beds,
       baths: archetype.home.baths,
       categoryChip: archetype.home.categoryChip,

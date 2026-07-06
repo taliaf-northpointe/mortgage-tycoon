@@ -54,11 +54,11 @@ function v1Save() {
   };
 }
 
-describe('save migration chain v1 → v5', () => {
+describe('save migration chain v1 → v6', () => {
   it('upgrades stages, documents, loan type, roles, and newer fields', () => {
     const migrated = parseSave(JSON.stringify(v1Save()));
 
-    expect(migrated.meta.saveVersion).toBe(5);
+    expect(migrated.meta.saveVersion).toBe(6);
 
     const loan = migrated.loans['LN-2026-0001'];
     expect(loan).toBeDefined();
@@ -88,6 +88,9 @@ describe('save migration chain v1 → v5', () => {
     expect(migrated.todayRevenueByHour).toHaveLength(10);
     expect(migrated.upgrades['cozyChairs']).toBe('available');
     expect(migrated.upgrades['executiveSuite']).toBe('locked');
+
+    // v5 → v6 additions — veterans skip the tutorial
+    expect(migrated.meta.tutorialDone).toBe(true);
   });
 
   it('v2 → v3 backfills the weekly-trend baseline from current happiness', () => {

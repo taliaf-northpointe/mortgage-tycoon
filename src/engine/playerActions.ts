@@ -13,7 +13,10 @@ import {
   HAPPINESS_MAX,
   REQUEST_NAG_HAPPINESS_COST,
   TRUST_MAX,
+  TUTORIAL_RESEARCH,
+  TUTORIAL_XP,
 } from './constants';
+import { checkLevelUp } from './economy';
 import { tiersOwned } from './upgrades';
 import { missingDocs, requirementsMet } from './loans';
 import { advanceLoanStage, missingDocsTag } from './tick';
@@ -151,6 +154,29 @@ export function toggleDelay(state: GameState, loanId: string): GameState {
   } else {
     l.statusTag = l.stage === 'documentCollection' ? missingDocsTag(l) : null;
     pushEvent(s, 'loans', `${name}'s loan is back on track`, 'Picking up right where you left off.');
+  }
+  return s;
+}
+
+/**
+ * Finish (or skip) the tutorial (GDD §11 #9). Completing all seven steps
+ * pays XP + research (GDD §13 decision 11); skipping just closes it.
+ */
+export function completeTutorial(state: GameState, skipped: boolean): GameState {
+  if (state.meta.tutorialDone) return state;
+
+  const s = structuredClone(state);
+  s.meta.tutorialDone = true;
+  if (!skipped) {
+    s.stats.xp += TUTORIAL_XP;
+    s.currencies.research += TUTORIAL_RESEARCH;
+    pushEvent(
+      s,
+      'loans',
+      'Tutorial complete! 🎓',
+      `You know the ropes — +${TUTORIAL_XP} XP and +${TUTORIAL_RESEARCH} research to start strong.`,
+    );
+    checkLevelUp(s);
   }
   return s;
 }

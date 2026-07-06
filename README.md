@@ -13,7 +13,7 @@
 | **Audience** | Casual players 16+ — no mortgage knowledge required |
 | **Session length** | 10–30 minutes (one to a few in-game days) |
 | **Stack** | TypeScript (strict) · React 18 + Vite · Zustand · CSS Modules + design tokens |
-| **Status** | In development — M0–M4 complete, live at [taliaf-northpointe.github.io/mortgage-empire-game](https://taliaf-northpointe.github.io/mortgage-empire-game/) |
+| **Status** | **v1 complete** (all milestones M0–M8) — play it at [taliaf-northpointe.github.io/mortgage-empire-game](https://taliaf-northpointe.github.io/mortgage-empire-game/) |
 
 ## The idea
 

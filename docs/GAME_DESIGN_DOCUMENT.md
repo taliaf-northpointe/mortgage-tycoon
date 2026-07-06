@@ -378,8 +378,10 @@ Day ends ──> End of Day Summary ──> Start Next Day ──> Dashboard (ne
 8. **Lead generation (M6, decided):** a simple seeded daily spawn (chance per morning, capped active loans, ~12 archetypes) ships with M6 so workload matters; richer referral/event-driven leads arrive with M7 events.
 9. **v2 terminology pivot (July 2026, decided):** authentic mortgage terms + glossary replace the v1 "no jargon" rule. The Pencil mockups still show v1 labels ("Papers", "Yes/No", Reviewer) — mockups to be refreshed when convenient; this document wins meanwhile. The 17-step real workflow is compressed to 9 board columns with in-stage sub-steps (§3) per the "no excessive sub-steps in the main UI" rule.
 10. **Tutorial copy** (§11) still references v1 wording — rewrite with glossary-linked terms when the Tutorial ships (M8).
-11. **Level gates simplified (M7, decided):** retro-locking already-built screens would frustrate players, so the §10 gate table applies forward only — the Upgrades screen unlocks at Level 3 (Branch Manager), upgrade Tiers 4–5 need Level 5 (Regional Director), and the Map will unlock at Level 4. Pipeline/Employees/Customer screens stay available from Level 1.
-12. **Servicing income (M7, decided):** each Complete loan credits its full monthly payment once per 28-day month — a cozy simplification of real servicing margins that gives the long game its engine.
+11. **Tutorial rewards (M8, decided):** completing all 7 steps grants +100 XP and +5 research (GDD §8/§10 "tutorial steps"); skipping grants nothing. The overlay uses a cozy mascot card rather than literal spotlight cutouts.
+12. **Map zoom controls (M8, deferred):** in the mockup but low-value at one region; revisit when a second region ships.
+13. **Level gates simplified (M7, decided):** retro-locking already-built screens would frustrate players, so the §10 gate table applies forward only — the Upgrades screen unlocks at Level 3 (Branch Manager), upgrade Tiers 4–5 need Level 5 (Regional Director), and the Map will unlock at Level 4. Pipeline/Employees/Customer screens stay available from Level 1.
+14. **Servicing income (M7, decided):** each Complete loan credits its full monthly payment once per 28-day month — a cozy simplification of real servicing margins that gives the long game its engine.
 
 ---
 

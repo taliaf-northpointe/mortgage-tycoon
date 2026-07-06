@@ -123,10 +123,11 @@ export interface GlossaryProgress {
 
 export interface GameState {
   meta: {
-    saveVersion: 5;
+    saveVersion: 6;
     playerName: string;
     officeName: string;
     createdAt: string;
+    tutorialDone: boolean; // M8 — tutorial shows once per save
   };
   clock: { day: number; season: Season; weekday: number; hour: number };
   currencies: { coins: number; gems: number; research: number };
@@ -137,7 +138,12 @@ export interface GameState {
   upgrades: Record<string, 'locked' | 'available' | 'purchased'>;
   neighborhoods: Record<
     string,
-    { status: 'locked' | 'available' | 'branch' | 'mainOffice'; demand: 'low' | 'med' | 'high'; leads: number }
+    {
+      status: 'locked' | 'available' | 'branch' | 'mainOffice';
+      demand: 'low' | 'med' | 'high';
+      leads: number;
+      scouted: boolean; // M8 — stats hidden until scouted (GDD §9)
+    }
   >;
   eventLog: GameEvent[];
   achievements: Record<string, { earned: boolean; earnedOnDay?: number }>;

@@ -12,6 +12,8 @@ import {
   trainEmployee,
 } from '../engine/employees';
 import type { HireCandidate } from '../engine/employees';
+import { openBranch, scoutNeighborhood } from '../engine/map';
+import { completeTutorial } from '../engine/playerActions';
 import { purchaseUpgrade } from '../engine/upgrades';
 import {
   contactCustomer,
@@ -58,6 +60,10 @@ interface GameStore {
   /** GDD §7/§11 (M7) */
   purchaseUpgrade(upgradeId: string): void;
   startNextDay(): void;
+  /** GDD §9/§11 (M8) */
+  scoutNeighborhood(id: string): void;
+  openBranch(id: string): void;
+  completeTutorial(skipped: boolean): void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -113,6 +119,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { game } = get();
     if (!game) return;
     const next = purchaseUpgrade(game, upgradeId);
+    if (next !== game) set({ game: next });
+  },
+
+  scoutNeighborhood(id) {
+    const { game } = get();
+    if (!game) return;
+    const next = scoutNeighborhood(game, id);
+    if (next !== game) set({ game: next });
+  },
+
+  openBranch(id) {
+    const { game } = get();
+    if (!game) return;
+    const next = openBranch(game, id);
+    if (next !== game) set({ game: next });
+  },
+
+  completeTutorial(skipped) {
+    const { game } = get();
+    if (!game) return;
+    const next = completeTutorial(game, skipped);
     if (next !== game) set({ game: next });
   },
 

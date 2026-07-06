@@ -81,7 +81,9 @@ describe('advanceDay', () => {
     expect(s.clock.hour).toBe(DAY_START_HOUR);
     expect(s.clock.weekday).toBe(2);
     expect(s.dayHistory).toHaveLength(1);
-    expect(s.eventLog).toHaveLength(0); // feed archived at day end
+    // Yesterday's feed is archived; anything left is fresh morning news
+    // (new leads, rate moves, neighborhood unlocks).
+    expect(s.eventLog.every((e) => e.day === 2)).toBe(true);
     expect(loanOf(s).daysInPipeline).toBe(1);
   });
 });

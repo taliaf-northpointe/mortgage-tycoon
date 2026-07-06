@@ -1028,7 +1028,7 @@
               "id": "QJOOY",
               "name": "Title",
               "fill": "$text-primary",
-              "content": "Mortgage Empire",
+              "content": "Mortgage Tycoon",
               "lineHeight": 1,
               "textAlign": "center",
               "fontFamily": "$font-heading",
@@ -1414,7 +1414,7 @@
                       "id": "hRScB",
                       "name": "Brand Name",
                       "fill": "$dash-text",
-                      "content": "Mortgage Empire",
+                      "content": "Mortgage Tycoon",
                       "fontFamily": "$font-heading",
                       "fontSize": 18,
                       "fontWeight": "700"
@@ -44375,7 +44375,7 @@
                       "id": "D28Le6",
                       "name": "Title",
                       "fill": "$sg-text",
-                      "content": "Mortgage Empire",
+                      "content": "Mortgage Tycoon",
                       "fontFamily": "$font-heading",
                       "fontSize": 44,
                       "fontWeight": "700"

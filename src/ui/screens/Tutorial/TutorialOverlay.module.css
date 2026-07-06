@@ -1,0 +1,138 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--color-ink) 45%, transparent);
+  z-index: 70;
+  padding: 24px;
+}
+
+.progressTrack {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 6px;
+  background: color-mix(in srgb, var(--color-paper) 30%, transparent);
+}
+
+.progressFill {
+  height: 100%;
+  background: var(--color-honey);
+  transition: width 250ms ease;
+}
+
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: var(--color-paper);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 28px 34px;
+  width: min(520px, 100%);
+}
+
+.mascotRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.mascot {
+  width: 54px;
+  height: 54px;
+  background: var(--color-cream);
+  border-radius: var(--radius-pill);
+  flex-shrink: 0;
+}
+
+.mascotRow div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.stepChip {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-paper);
+  background: var(--color-sky);
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+  width: fit-content;
+}
+
+.says {
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+  font-style: italic;
+}
+
+.skip {
+  margin-left: auto;
+  align-self: flex-start;
+  font-family: var(--font-body);
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.body {
+  margin: 0;
+  color: var(--color-ink);
+  line-height: 1.55;
+}
+
+.tips {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tips li {
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+  background: var(--color-cream);
+  border: var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.dots {
+  display: flex;
+  gap: 6px;
+}
+
+.dot,
+.dotActive {
+  width: 9px;
+  height: 9px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--color-sand);
+  cursor: pointer;
+}
+
+.dotActive {
+  background: var(--color-terracotta);
+}

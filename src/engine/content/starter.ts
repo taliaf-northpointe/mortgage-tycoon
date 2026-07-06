@@ -18,11 +18,12 @@ export const STARTER_CUSTOMER_ID = 'cust-sarah-chen';
 export function createStarterState(rngSeed = 42): GameState {
   return {
     meta: {
-      saveVersion: 5,
+      saveVersion: 6,
       playerName: 'You',
       officeName: 'Old Town Office',
       // Fixed for determinism; the real New Game flow (M2) stamps the actual date.
       createdAt: '2026-07-06',
+      tutorialDone: false,
     },
     clock: { day: 1, season: 'spring', weekday: 1, hour: 9 },
     currencies: { coins: STARTING_COINS, gems: 0, research: 0 },
@@ -117,12 +118,12 @@ export function createStarterState(rngSeed = 42): GameState {
     },
     upgrades: initialUpgradeStates(),
     neighborhoods: {
-      oldTown: { status: 'mainOffice', demand: 'high', leads: 3 },
-      sunnyHeights: { status: 'available', demand: 'high', leads: 8 },
-      riversideVillage: { status: 'available', demand: 'high', leads: 12 },
-      uptownHills: { status: 'locked', demand: 'med', leads: 0 },
-      eastRidge: { status: 'locked', demand: 'low', leads: 0 },
-      greenValley: { status: 'locked', demand: 'med', leads: 0 },
+      oldTown: { status: 'mainOffice', demand: 'high', leads: 3, scouted: true },
+      sunnyHeights: { status: 'available', demand: 'high', leads: 8, scouted: false },
+      riversideVillage: { status: 'available', demand: 'high', leads: 12, scouted: false },
+      uptownHills: { status: 'locked', demand: 'med', leads: 5, scouted: false },
+      eastRidge: { status: 'locked', demand: 'low', leads: 2, scouted: false },
+      greenValley: { status: 'locked', demand: 'med', leads: 7, scouted: false },
     },
     eventLog: [],
     achievements: {},

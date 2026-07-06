@@ -49,6 +49,7 @@ import {
   updateEmployeeTags,
 } from './employees';
 import { missingDocs, nextStage, requirementsMet } from './loans';
+import { refreshNeighborhoodAvailability } from './map';
 import { tiersOwned } from './upgrades';
 import type { Customer, DaySummary, GameEvent, GameState, Loan, Role } from './types';
 
@@ -367,6 +368,9 @@ export function advanceDay(state: GameState): GameState {
 
   // GDD §8 — the ambient economy drifts overnight.
   driftInterestRate(s);
+
+  // GDD §9 — growing reputation opens new neighborhoods.
+  refreshNeighborhoodAvailability(s);
 
   // GDD §5 — workload wears on (or restores) the team overnight; a cozy
   // office (GDD §7) softens the grind.

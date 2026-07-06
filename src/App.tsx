@@ -7,7 +7,9 @@ import { CustomerProfile } from './ui/screens/CustomerProfile/CustomerProfile';
 import { Dashboard } from './ui/screens/Dashboard/Dashboard';
 import { Employees } from './ui/screens/Employees/Employees';
 import { EndOfDay } from './ui/screens/EndOfDay/EndOfDay';
+import { TutorialOverlay } from './ui/screens/Tutorial/TutorialOverlay';
 import { Upgrades } from './ui/screens/Upgrades/Upgrades';
+import { WorldMap } from './ui/screens/WorldMap/WorldMap';
 import { LearningCenter } from './ui/screens/LearningCenter/LearningCenter';
 import { MainMenu } from './ui/screens/MainMenu/MainMenu';
 import { Pipeline } from './ui/screens/Pipeline/Pipeline';
@@ -61,11 +63,13 @@ export function App() {
 
   // The day clock (TDD §4) runs whenever a game is open, on any game screen.
   // Returning to the Main Menu pauses the world.
+  const tutorialActive = hasGame && game !== null && !game.meta.tutorialDone;
+
   useEffect(() => {
-    if (!hasGame || screen === 'mainMenu' || speed === 0 || showEndOfDay) return;
+    if (!hasGame || screen === 'mainMenu' || speed === 0 || showEndOfDay || tutorialActive) return;
     const id = window.setInterval(() => useGameStore.getState().tick(), REAL_MS_PER_HOUR / speed);
     return () => window.clearInterval(id);
-  }, [hasGame, screen, speed, showEndOfDay]);
+  }, [hasGame, screen, speed, showEndOfDay, tutorialActive]);
 
   // M7 — the world pauses on the End-of-Day summary (GDD §11 screen 8).
   if (showEndOfDay && screen !== 'mainMenu' && hasGame) {
@@ -95,6 +99,9 @@ export function App() {
   if (screen === 'upgrades') {
     return <Upgrades onBack={() => setScreen('dashboard')} />;
   }
+  if (screen === 'map') {
+    return <WorldMap onBack={() => setScreen('dashboard')} />;
+  }
   if (screen === 'audioSettings') {
     return <AudioSettings onBack={() => setScreen(hasGame ? 'dashboard' : 'mainMenu')} />;
   }
@@ -108,11 +115,14 @@ export function App() {
     );
   }
   return (
-    <Dashboard
-      speed={speed}
-      onSpeedChange={setSpeed}
-      onNavigate={setScreen}
-      onExitToMenu={() => setScreen('mainMenu')}
-    />
+    <>
+      <Dashboard
+        speed={speed}
+        onSpeedChange={setSpeed}
+        onNavigate={setScreen}
+        onExitToMenu={() => setScreen('mainMenu')}
+      />
+      {tutorialActive && <TutorialOverlay />}
+    </>
   );
 }
