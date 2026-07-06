@@ -1,0 +1,38 @@
+.layer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.piece,
+.pieceTall {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  animation: burst 800ms ease-out forwards;
+}
+
+.pieceTall {
+  width: 6px;
+  height: 14px;
+}
+
+@keyframes burst {
+  0% {
+    transform: translate(0, 0) rotate(0deg) scale(0.6);
+    opacity: 1;
+  }
+  20% {
+    transform: translate(calc(var(--dx) * 0.35), calc(var(--dy) * 0.6)) rotate(calc(var(--rot) * 0.4)) scale(1.1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), calc(var(--dy) * -0.4 + 220px)) rotate(var(--rot)) scale(1);
+    opacity: 0;
+  }
+}

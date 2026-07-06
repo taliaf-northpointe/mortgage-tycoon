@@ -25,7 +25,7 @@
 - [x] M1 — Engine core (no UI)
 - [x] M2 — Main Menu + save system
 - [x] M3 — Dashboard shell
-- [ ] M4 — Pipeline + loan detail
+- [x] M4 — Pipeline + loan detail
 - [ ] M5 — Customer Profile
 - [ ] M6 — Employees
 - [ ] M7 — Economy + Upgrades + End of Day

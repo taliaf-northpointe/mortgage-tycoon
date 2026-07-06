@@ -89,6 +89,28 @@ export const REQUIRED_DOCS_BY_LOAN_TYPE: Record<LoanType, readonly DocumentKey[]
   investment: ['proofOfJob', 'moneyInBank', 'photoId', 'addressHistory', 'references', 'taxPapers', 'homeInspection'],
 };
 
+/** GDD §3 — loan type display names */
+export const LOAN_TYPE_LABEL: Record<LoanType, string> = {
+  firstHome: 'First Home',
+  homePurchase: 'Home Purchase',
+  refinance: 'Refinance',
+  investment: 'Investment',
+};
+
+/** GDD §3 — stage names as shown on the Pipeline board */
+export const STAGE_DISPLAY_NAME: Record<LoanStage, string> = {
+  lead: 'Lead',
+  application: 'Application',
+  documents: 'Documents',
+  review: 'Review',
+  approval: 'Approval',
+  closing: 'Closing',
+  completed: 'Completed',
+};
+
+/** GDD §4 action 3 — Contact Customer happiness boost (full math lands in M5) */
+export const CONTACT_HAPPINESS_BOOST = 2;
+
 /** GDD §4 — plain-language paper names (players never see jargon) */
 export const DOC_FRIENDLY_NAME: Record<DocumentKey, string> = {
   proofOfJob: 'Proof of Job',

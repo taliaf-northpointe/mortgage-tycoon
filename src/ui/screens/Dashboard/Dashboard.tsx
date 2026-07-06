@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import {
   Briefcase,
   Coins,
@@ -14,12 +13,7 @@ import {
   Star,
   Users,
 } from 'lucide-react';
-import {
-  DAY_END_HOUR,
-  REAL_MS_PER_HOUR,
-  titleForLevel,
-  WEEKDAYS,
-} from '../../../engine/constants';
+import { DAY_END_HOUR, titleForLevel, WEEKDAYS } from '../../../engine/constants';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
 import styles from './Dashboard.module.css';
@@ -29,19 +23,14 @@ import { OfficeScene } from './OfficeScene';
 type Speed = 0 | 1 | 2 | 3;
 
 interface DashboardProps {
+  speed: Speed;
+  onSpeedChange(speed: Speed): void;
+  onNavigate(screen: 'pipeline'): void;
   onExitToMenu(): void;
 }
 
-export function Dashboard({ onExitToMenu }: DashboardProps) {
+export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: DashboardProps) {
   const game = useGameStore((s) => s.game);
-  const [speed, setSpeed] = useState<Speed>(1);
-
-  useEffect(() => {
-    if (!game || speed === 0) return;
-    const id = window.setInterval(() => useGameStore.getState().tick(), REAL_MS_PER_HOUR / speed);
-    return () => window.clearInterval(id);
-  }, [speed, game !== null]);
-
   if (!game) return null;
 
   const { clock, meta, currencies, stats } = game;
@@ -63,7 +52,12 @@ export function Dashboard({ onExitToMenu }: DashboardProps) {
         </div>
         <NavItem icon={<Home size={17} />} label="Office" active />
         <NavItem icon={<Users size={17} />} label="Employees" badge={employees.length} soon />
-        <NavItem icon={<FolderKanban size={17} />} label="Pipeline" badge={activeLoans} soon />
+        <NavItem
+          icon={<FolderKanban size={17} />}
+          label="Pipeline"
+          badge={activeLoans}
+          onClick={() => onNavigate('pipeline')}
+        />
         <NavItem icon={<Sparkles size={17} />} label="Upgrades" soon />
         <NavItem icon={<Map size={17} />} label="Map" soon />
         <NavItem icon={<Settings size={17} />} label="Settings" soon />
@@ -102,7 +96,7 @@ export function Dashboard({ onExitToMenu }: DashboardProps) {
           <button
             type="button"
             className={speed === 0 ? styles.speedActive : styles.speedButton}
-            onClick={() => setSpeed(0)}
+            onClick={() => onSpeedChange(0)}
             aria-label="Pause"
           >
             <Pause size={13} />
@@ -112,7 +106,7 @@ export function Dashboard({ onExitToMenu }: DashboardProps) {
               key={s}
               type="button"
               className={speed === s ? styles.speedActive : styles.speedButton}
-              onClick={() => setSpeed(s)}
+              onClick={() => onSpeedChange(s)}
               aria-label={`Speed ${s}x`}
             >
               {speed === 0 && s === 1 ? <Play size={13} /> : `${s}×`}
@@ -136,12 +130,14 @@ function NavItem({
   badge,
   active = false,
   soon = false,
+  onClick,
 }: {
   icon: React.ReactNode;
   label: string;
   badge?: number;
   active?: boolean;
   soon?: boolean;
+  onClick?(): void;
 }) {
   return (
     <button
@@ -149,6 +145,7 @@ function NavItem({
       className={active ? styles.navItemActive : styles.navItem}
       disabled={soon}
       title={soon ? 'Coming in a later milestone' : undefined}
+      onClick={onClick}
     >
       {icon}
       <span>{label}</span>

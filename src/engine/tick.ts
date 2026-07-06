@@ -30,49 +30,18 @@ function pushEvent(state: GameState, category: GameEvent['category'], title: str
   state.eventLog.push({ id: `evt-${day}-${hour}-${n}`, day, hour, category, title, detail });
 }
 
-function missingDocsTag(loan: Loan): string | null {
+export function missingDocsTag(loan: Loan): string | null {
   const count = missingDocs(loan).length;
   if (count === 0) return 'Ready';
   return `Missing ${count} ${count === 1 ? 'doc' : 'docs'}`;
 }
 
-/** Advance one loan by one working hour. Mutates the (already cloned) state. */
-function workLoan(state: GameState, loan: Loan): void {
-  const owningRole = ROLE_BY_STAGE[loan.stage];
-
-  // TDD §4b — an employee of the owning role must have capacity.
-  const assigned = loan.assignedEmployeeId ? state.employees[loan.assignedEmployeeId] : undefined;
-  if (!assigned || assigned.role !== owningRole) {
-    loan.assignedEmployeeId = findEmployeeIdForRole(state, owningRole);
-  }
-  if (!loan.assignedEmployeeId) return; // stalled: nobody owns this stage yet
-
-  // M1 placeholder: while a loan sits in Papers, the customer sends in one
-  // missing paper per hour. M5 replaces this with the request/response loop.
-  if (loan.stage === 'documents') {
-    const missing = missingDocs(loan);
-    const nextDoc = missing[0];
-    if (nextDoc) {
-      loan.documents[nextDoc] = 'collected';
-      loan.statusTag = missingDocsTag(loan);
-      const customer = state.customers[loan.customerId];
-      const remaining = missing.length - 1;
-      pushEvent(
-        state,
-        'customers',
-        `${customer ? customer.name : 'A customer'} sent a paper`,
-        remaining === 0
-          ? `${DOC_FRIENDLY_NAME[nextDoc]} is in — that's everything!`
-          : `${DOC_FRIENDLY_NAME[nextDoc]} is in — ${remaining} more to go!`,
-      );
-      return; // this hour went to paperwork
-    }
-  }
-
-  // TDD §4c — accumulate progress-hours toward the current stage.
-  loan.progressHours += 1;
-  if (loan.progressHours < STAGE_HOURS_REQUIRED[loan.stage] || !requirementsMet(loan)) return;
-
+/**
+ * Move a loan into its next stage: reassign, retag, log the event, and pay
+ * out on completion. Mutates the (already cloned) state. Shared by the tick
+ * loop and the player's "Move to next stage" action (GDD §3).
+ */
+export function advanceLoanStage(state: GameState, loan: Loan): void {
   const to = nextStage(loan.stage);
   if (!to) return;
 
@@ -103,6 +72,47 @@ function workLoan(state: GameState, loan: Loan): void {
     `${customerName} is on to the next step`,
     `Now in "${STAGE_FRIENDLY_LABEL[to]}".`,
   );
+}
+
+/** Advance one loan by one working hour. Mutates the (already cloned) state. */
+function workLoan(state: GameState, loan: Loan): void {
+  const owningRole = ROLE_BY_STAGE[loan.stage];
+
+  // TDD §4b — an employee of the owning role must have capacity.
+  const assigned = loan.assignedEmployeeId ? state.employees[loan.assignedEmployeeId] : undefined;
+  if (!assigned || assigned.role !== owningRole) {
+    loan.assignedEmployeeId = findEmployeeIdForRole(state, owningRole);
+  }
+  if (!loan.assignedEmployeeId) return; // stalled: nobody owns this stage yet
+
+  // M1 placeholder: while a loan sits in Papers, the customer sends in one
+  // owed paper per hour — papers the player has requested arrive first.
+  // M5 replaces this with the full trait-driven request/response loop.
+  if (loan.stage === 'documents') {
+    const missing = missingDocs(loan);
+    const nextDoc = missing.find((key) => loan.documents[key] === 'requested') ?? missing[0];
+    if (nextDoc) {
+      loan.documents[nextDoc] = 'collected';
+      loan.statusTag = missingDocsTag(loan);
+      const customer = state.customers[loan.customerId];
+      const remaining = missing.length - 1;
+      pushEvent(
+        state,
+        'customers',
+        `${customer ? customer.name : 'A customer'} sent a paper`,
+        remaining === 0
+          ? `${DOC_FRIENDLY_NAME[nextDoc]} is in — that's everything!`
+          : `${DOC_FRIENDLY_NAME[nextDoc]} is in — ${remaining} more to go!`,
+      );
+      return; // this hour went to paperwork
+    }
+  }
+
+  // TDD §4c — accumulate progress-hours toward the current stage.
+  loan.progressHours += 1;
+  if (loan.progressHours < STAGE_HOURS_REQUIRED[loan.stage] || !requirementsMet(loan)) return;
+
+  advanceLoanStage(state, loan);
 }
 
 /** One working-hour tick. Returns a new state; the input is never mutated. */

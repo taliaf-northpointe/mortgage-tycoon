@@ -5,8 +5,9 @@
 import { create } from 'zustand';
 import { DAY_END_HOUR } from '../engine/constants';
 import { createStarterState } from '../engine/content/starter';
+import { contactCustomer, moveLoanForward, requestDocument } from '../engine/playerActions';
 import { advanceDay, advanceHour } from '../engine/tick';
-import type { GameState } from '../engine/types';
+import type { DocumentKey, GameState } from '../engine/types';
 import { loadGame, saveGame, serializeSave } from './saveSystem';
 
 interface GameStore {
@@ -24,6 +25,10 @@ interface GameStore {
    * the next morning once the working day is over (TDD §4).
    */
   tick(): void;
+  /** GDD §3 loan popover actions */
+  requestDocument(loanId: string, key: DocumentKey): void;
+  contactCustomer(loanId: string): void;
+  moveLoan(loanId: string): void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -62,6 +67,27 @@ export const useGameStore = create<GameStore>((set, get) => ({
     const { game } = get();
     if (!game) return;
     set({ game: game.clock.hour > DAY_END_HOUR ? advanceDay(game) : advanceHour(game) });
+  },
+
+  requestDocument(loanId, key) {
+    const { game } = get();
+    if (!game) return;
+    const next = requestDocument(game, loanId, key);
+    if (next !== game) set({ game: next });
+  },
+
+  contactCustomer(loanId) {
+    const { game } = get();
+    if (!game) return;
+    const next = contactCustomer(game, loanId);
+    if (next !== game) set({ game: next });
+  },
+
+  moveLoan(loanId) {
+    const { game } = get();
+    if (!game) return;
+    const next = moveLoanForward(game, loanId);
+    if (next !== game) set({ game: next });
   },
 }));
 
