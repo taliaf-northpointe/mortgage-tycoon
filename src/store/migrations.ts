@@ -6,7 +6,7 @@
 
 import { initialUpgradeStates } from '../engine/upgrades';
 
-export const CURRENT_SAVE_VERSION = 6;
+export const CURRENT_SAVE_VERSION = 7;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -147,12 +147,24 @@ function migrateV5toV6(data: Record<string, unknown>): Record<string, unknown> {
   return next;
 }
 
+/** v6 → v7 (M8.1 End-of-Day fix): XP snapshot for accurate daily summaries. */
+function migrateV6toV7(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+  const stats = (next['stats'] ?? {}) as Record<string, unknown>;
+  next['xpAtDayStart'] = next['xpAtDayStart'] ?? stats['xp'] ?? 0;
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['saveVersion'] = 7;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
   2: migrateV2toV3,
   3: migrateV3toV4,
   4: migrateV4toV5,
   5: migrateV5toV6,
+  6: migrateV6toV7,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

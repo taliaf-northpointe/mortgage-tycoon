@@ -54,11 +54,11 @@ function v1Save() {
   };
 }
 
-describe('save migration chain v1 → v6', () => {
+describe('save migration chain v1 → v7', () => {
   it('upgrades stages, documents, loan type, roles, and newer fields', () => {
     const migrated = parseSave(JSON.stringify(v1Save()));
 
-    expect(migrated.meta.saveVersion).toBe(6);
+    expect(migrated.meta.saveVersion).toBe(7);
 
     const loan = migrated.loans['LN-2026-0001'];
     expect(loan).toBeDefined();
@@ -91,6 +91,9 @@ describe('save migration chain v1 → v6', () => {
 
     // v5 → v6 additions — veterans skip the tutorial
     expect(migrated.meta.tutorialDone).toBe(true);
+
+    // v6 → v7 additions — daily XP snapshot backfilled from current XP
+    expect(migrated.xpAtDayStart).toBe(0);
   });
 
   it('v2 → v3 backfills the weekly-trend baseline from current happiness', () => {

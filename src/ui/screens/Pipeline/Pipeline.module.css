@@ -307,6 +307,17 @@
   white-space: nowrap;
 }
 
+.outlook {
+  margin: 0;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-sky) 14%, var(--color-paper));
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 8px 12px;
+}
+
 .terms {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

@@ -11,7 +11,7 @@ import {
 } from '../../src/engine/constants';
 import { createStarterState, STARTER_LOAN_ID } from '../../src/engine/content/starter';
 import { awardAchievement, checkLevelUp, driftInterestRate } from '../../src/engine/economy';
-import { advanceDay } from '../../src/engine/tick';
+import { advanceDay, advanceHour } from '../../src/engine/tick';
 import type { GameState } from '../../src/engine/types';
 
 describe('payroll (GDD §8, charged from M7)', () => {
@@ -85,6 +85,31 @@ describe('interest-rate drift (GDD §8)', () => {
       expect(s.stats.interestRate).toBeGreaterThanOrEqual(INTEREST_RATE_MIN);
       expect(s.stats.interestRate).toBeLessThanOrEqual(INTEREST_RATE_MAX);
     }
+  });
+});
+
+describe('REGRESSION (M8.1): hour-by-hour play must still produce a real summary', () => {
+  it('records completions, revenue, and XP when the day ticks one hour at a time', () => {
+    // This mirrors the live store loop (advanceHour per tick, advanceDay only
+    // at rollover) — the bug was a summary that always read zero this way.
+    let s = createStarterState();
+    const loan = s.loans[STARTER_LOAN_ID];
+    if (!loan) throw new Error('missing loan');
+    loan.stage = 'closing';
+    loan.progressHours = 3.5;
+
+    let guard = 0;
+    while (s.dayHistory.length === 0 && guard++ < 40) {
+      s = s.clock.hour > 18 ? advanceDay(s) : advanceHour(s);
+    }
+
+    const today = s.dayHistory[0];
+    expect(today?.loansCompleted).toBe(1);
+    expect(today?.revenue).toBeGreaterThan(0);
+    expect(today?.xpEarned).toBeGreaterThanOrEqual(100);
+    expect((today?.revenueByHour ?? []).reduce((a, b) => a + b, 0)).toBe(
+      (today?.revenue ?? 0) - (today?.servicingIncome ?? 0),
+    );
   });
 });
 

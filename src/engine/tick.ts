@@ -99,6 +99,12 @@ export function advanceLoanStage(state: GameState, loan: Loan): void {
   if (to === 'completed') {
     const fee = Math.round(loan.amount * CLOSING_FEE_RATE);
     state.currencies.coins += fee;
+    // Record income at the source so both simulated and player-driven
+    // closings land in the End-of-Day chart (M8.1 fix).
+    const hourIndex = Math.min(9, Math.max(0, state.clock.hour - DAY_START_HOUR));
+    if (state.todayRevenueByHour[hourIndex] !== undefined) {
+      state.todayRevenueByHour[hourIndex] += fee;
+    }
     state.stats.xp += XP_PER_COMPLETED_LOAN;
     loan.statusTag = 'Closed';
     pushEvent(
@@ -174,8 +180,9 @@ export function advanceLoanStage(state: GameState, loan: Loan): void {
 /**
  * How many hours between document deliveries (GDD §4, M5): requested
  * documents come faster, and prompt/enthusiastic customers respond faster.
+ * Exported for the loan-detail ETA display (engine/insights.ts).
  */
-function docDeliveryCadence(customer: Customer | undefined, hasRequested: boolean): number {
+export function docDeliveryCadence(customer: Customer | undefined, hasRequested: boolean): number {
   const traits = customer?.traits ?? [];
   if (hasRequested) {
     return traits.includes('prompt') ? REQUESTED_DOC_HOURS_PROMPT : REQUESTED_DOC_HOURS;
@@ -259,16 +266,9 @@ function workLoan(state: GameState, loan: Loan): void {
 export function advanceHour(state: GameState): GameState {
   const s = structuredClone(state);
   deriveWorkloads(s); // workload reflects assignments before anyone works (GDD §5)
-  const coinsBefore = s.currencies.coins;
   for (const loan of Object.values(s.loans)) {
     if (loan.stage === 'completed') continue;
     workLoan(s, loan);
-  }
-  // M7 — track income per hour for the End-of-Day chart.
-  const earned = s.currencies.coins - coinsBefore;
-  const hourIndex = Math.min(9, Math.max(0, s.clock.hour - DAY_START_HOUR));
-  if (earned > 0 && s.todayRevenueByHour[hourIndex] !== undefined) {
-    s.todayRevenueByHour[hourIndex] += earned;
   }
   deriveWorkloads(s);
   updateEmployeeTags(s);
@@ -283,22 +283,16 @@ export function advanceHour(state: GameState): GameState {
 export function advanceDay(state: GameState): GameState {
   let s = structuredClone(state);
 
-  const coinsAtStart = s.currencies.coins;
-  const xpAtStart = s.stats.xp;
-  const completedAtStart = Object.values(s.loans).filter((l) => l.stage === 'completed').length;
-  const badgesAtStart = new Set(
-    Object.entries(s.achievements)
-      .filter(([, a]) => a.earned)
-      .map(([id]) => id),
-  );
-
   while (s.clock.hour <= DAY_END_HOUR) {
     s = advanceHour(s);
   }
 
   // ── M7 evening economy (GDD §8) ──
+  // The summary reads the WHOLE day's accumulated tracking — in live play
+  // hours tick one by one and advanceDay only fires at rollover, so
+  // point-of-rollover diffs would always read zero (the M8.1 fix).
   const servicingIncome = creditServicing(s);
-  const grossRevenue = s.currencies.coins - coinsAtStart;
+  const grossRevenue = s.todayRevenueByHour.reduce((a, b) => a + b, 0) + servicingIncome;
   const payroll = chargePayroll(s);
   if (payroll > 0) {
     pushEvent(
@@ -310,8 +304,8 @@ export function advanceDay(state: GameState): GameState {
   }
   if (grossRevenue >= RAINMAKER_REVENUE) awardAchievement(s, 'rainmaker');
 
-  const loansCompleted =
-    Object.values(s.loans).filter((l) => l.stage === 'completed').length - completedAtStart;
+  // Today's closings live in the day's event feed until it is archived.
+  const loansCompleted = s.eventLog.filter((e) => e.title.includes('got the keys')).length;
   s.stats.reputation = Math.min(100, s.stats.reputation + loansCompleted * REPUTATION_PER_COMPLETION);
 
   const starRating = Math.min(5, Math.max(1, STAR_RATING_BASE + loansCompleted)) as DaySummary['starRating'];
@@ -322,7 +316,7 @@ export function advanceDay(state: GameState): GameState {
   checkLevelUp(s);
 
   const badgesEarned = Object.entries(s.achievements)
-    .filter(([id, a]) => a.earned && !badgesAtStart.has(id))
+    .filter(([, a]) => a.earned && a.earnedOnDay === s.clock.day)
     .map(([id]) => id);
 
   s.dayHistory.push({
@@ -331,13 +325,14 @@ export function advanceDay(state: GameState): GameState {
     revenue: grossRevenue,
     payroll,
     servicingIncome,
-    xpEarned: s.stats.xp - xpAtStart,
+    xpEarned: s.stats.xp - s.xpAtDayStart,
     starRating,
     revenueByHour: [...s.todayRevenueByHour],
     badgesEarned,
     highlights: s.eventLog.slice(0, 6).map((e) => ({ title: e.title, detail: e.detail })),
   });
   s.todayRevenueByHour = Array.from({ length: 10 }, () => 0);
+  s.xpAtDayStart = s.stats.xp;
 
   for (const loan of Object.values(s.loans)) {
     if (loan.stage !== 'completed') loan.daysInPipeline += 1;

@@ -184,15 +184,14 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 function boardMetrics(loans: Loan[]) {
-  const active = loans.filter((l) => l.stage !== 'completed');
-  const completed = loans.length - active.length;
+  // Metrics describe every loan on the board — otherwise Total Volume reads
+  // $0 the moment the last loan closes, which looks broken.
+  const completed = loans.filter((l) => l.stage === 'completed').length;
   const avg =
-    active.length === 0
-      ? null
-      : active.reduce((sum, l) => sum + l.daysInPipeline + 1, 0) / active.length;
+    loans.length === 0 ? null : loans.reduce((sum, l) => sum + l.daysInPipeline + 1, 0) / loans.length;
   return {
-    totalLoans: active.length,
-    totalVolume: active.reduce((sum, l) => sum + l.amount, 0),
+    totalLoans: loans.length,
+    totalVolume: loans.reduce((sum, l) => sum + l.amount, 0),
     avgDays: avg === null ? '—' : `${avg.toFixed(1)} days`,
     conversion: loans.length === 0 ? '—' : `${Math.round((completed / loans.length) * 100)}%`,
   };

@@ -15,7 +15,7 @@ import {
   Users,
 } from 'lucide-react';
 import { audioManager } from '../../../audio/AudioManager';
-import { DAY_END_HOUR, titleForLevel, WEEKDAYS } from '../../../engine/constants';
+import { DAY_END_HOUR, REAL_MS_PER_HOUR, titleForLevel, WEEKDAYS } from '../../../engine/constants';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
 import { GlossaryTerm } from '../../glossary/GlossaryTerm';
@@ -125,7 +125,20 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
         <span className={styles.dayChip}>
           DAY {clock.day} · {clock.season.toUpperCase()} · {(WEEKDAYS[clock.weekday] ?? '').toUpperCase()}
         </span>
-        <span className={styles.hourChip}>{formatHour(clock.hour)}</span>
+        <span className={styles.hourChip}>
+          {formatHour(clock.hour)}
+          {clock.hour <= DAY_END_HOUR && (
+            <span
+              key={`${clock.day}-${clock.hour}`}
+              className={styles.hourProgress}
+              style={{
+                animationDuration: `${REAL_MS_PER_HOUR / Math.max(1, speed)}ms`,
+                animationPlayState: speed === 0 ? 'paused' : 'running',
+              }}
+              aria-hidden="true"
+            />
+          )}
+        </span>
 
         <div className={styles.kpis}>
           <Kpi icon={<Coins size={15} />} label="Money" value={`$${currencies.coins.toLocaleString('en-US')}`} />

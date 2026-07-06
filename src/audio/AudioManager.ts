@@ -89,6 +89,16 @@ interface AudioAssetDefinition {
 
 const STORAGE_KEY = 'mortgage-empire.audio';
 
+/**
+ * The app is served under a base path on GitHub Pages
+ * (/mortgage-empire-game/), so absolute asset paths must be prefixed —
+ * otherwise every audio request 404s in production.
+ */
+function resolveAssetPath(path: string): string {
+  const base = (import.meta.env?.BASE_URL ?? '/').replace(/\/$/, '');
+  return path.startsWith('/') ? `${base}${path}` : path;
+}
+
 const DEFAULT_SETTINGS: AudioSettings = {
   masterVolume: 0.8,
   musicVolume: 0.7,
@@ -414,7 +424,7 @@ export class AudioManager {
       existing.loop = options.loop ?? existing.loop;
       return existing;
     }
-    const audio = new Audio(path);
+    const audio = new Audio(resolveAssetPath(path));
     audio.preload = 'auto';
     audio.loop = options.loop ?? false;
     audio.volume = this.getEffectiveVolume(options.category, options.volume);

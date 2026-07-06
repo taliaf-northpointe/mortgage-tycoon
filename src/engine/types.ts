@@ -123,7 +123,7 @@ export interface GlossaryProgress {
 
 export interface GameState {
   meta: {
-    saveVersion: 6;
+    saveVersion: 7;
     playerName: string;
     officeName: string;
     createdAt: string;
@@ -149,6 +149,7 @@ export interface GameState {
   achievements: Record<string, { earned: boolean; earnedOnDay?: number }>;
   dayHistory: DaySummary[];
   todayRevenueByHour: number[]; // 10 running totals for the current day (M7); reset at rollover
+  xpAtDayStart: number; // snapshot at rollover so the summary can report XP earned today (v7)
   glossary: Record<string, GlossaryProgress>;
   rngSeed: number;
 }

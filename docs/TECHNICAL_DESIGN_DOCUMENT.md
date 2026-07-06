@@ -157,7 +157,7 @@ interface Employee {
 }
 
 interface GameState {
-  meta: { saveVersion: 6; playerName: string; officeName: string; createdAt: string;
+  meta: { saveVersion: 7; playerName: string; officeName: string; createdAt: string;
           tutorialDone: boolean };   // M8 — tutorial shows once per save
   clock: { day: number; season: 'spring'|'summer'|'fall'|'winter'; weekday: number; hour: number };
   currencies: { coins: number; gems: number; research: number };
@@ -173,6 +173,7 @@ interface GameState {
   achievements: Record<string, { earned: boolean; earnedOnDay?: number }>;
   dayHistory: DaySummary[];          // feeds End-of-Day deltas & charts
   todayRevenueByHour: number[];      // 10 running totals for the current day (M7); reset at rollover
+  xpAtDayStart: number;              // snapshot at rollover for the daily XP stat (v7)
   glossary: Record<string, { unlocked: boolean; learned: boolean; learnedOnDay?: number }>;
                                      // progressive learning state (GDD §4.1); keys from the glossary module
   rngSeed: number;
@@ -228,6 +229,7 @@ interface DaySummary {
 - **v3 → v4** (M6 Employees): adds `Employee.level = 1`.
 - **v4 → v5** (M7 Economy): adds `todayRevenueByHour` (zeros), populates the `upgrades` map (tier 1 available, rest locked), and backfills the extended `DaySummary` fields on existing history.
 - **v5 → v6** (M8 Map + Tutorial): adds `neighborhood.scouted` (true for non-locked so veterans keep their visible stats) and `meta.tutorialDone = true` for existing saves (only fresh games see the tutorial).
+- **v6 → v7** (M8.1 fix): adds `xpAtDayStart` so the End-of-Day summary reports the whole day (revenue is recorded at the payout source; completions come from the day's events) instead of a rollover-instant diff that always read zero in live play.
 
 ## 6.1 MortgageGlossary service (v2, GDD §4.1)
 

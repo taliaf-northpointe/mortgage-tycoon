@@ -3,8 +3,10 @@ import {
   DOC_FRIENDLY_SUBLABEL,
   LOAN_PRODUCT_LABEL,
   LOAN_PURPOSE_LABEL,
+  ROLE_DISPLAY_NAME,
   STAGE_DISPLAY_NAME,
 } from '../../../engine/constants';
+import { loanOutlook } from '../../../engine/insights';
 import { ALL_DOC_KEYS, missingDocs, nextStage } from '../../../engine/loans';
 import type { Customer, DocStatus, Loan } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
@@ -19,6 +21,35 @@ const DOC_STATUS_LABEL: Record<Exclude<DocStatus, 'notRequired'>, string> = {
   collected: 'Collected',
 };
 
+/** Who the loan is with and how long until something happens (M8.1). */
+function OutlookLine({ loan }: { loan: Loan }) {
+  const game = useGameStore((s) => s.game);
+  if (!game) return null;
+  const outlook = loanOutlook(game, loan);
+  const withWho =
+    outlook.assigneeName && outlook.assigneeRole
+      ? `with ${outlook.assigneeName} (${ROLE_DISPLAY_NAME[outlook.assigneeRole]})`
+      : null;
+
+  let text: string;
+  switch (outlook.kind) {
+    case 'done':
+      return null;
+    case 'delayed':
+      text = '⏸ Set aside — resume to keep things moving.';
+      break;
+    case 'unstaffed':
+      text = `⚠ Nobody owns ${STAGE_DISPLAY_NAME[loan.stage]} right now — hire or rebalance!`;
+      break;
+    case 'documents':
+      text = `🕐 Next document in ~${outlook.hours}h${withWho ? ` · ${withWho}` : ''}`;
+      break;
+    default:
+      text = `🕐 About ${outlook.hours}h left in ${STAGE_DISPLAY_NAME[loan.stage]}${withWho ? ` · ${withWho}` : ''}`;
+  }
+  return <p className={styles.outlook}>{text}</p>;
+}
+
 export function LoanDetailModal({
   loan,
   customer,
@@ -30,6 +61,7 @@ export function LoanDetailModal({
   onClose(): void;
   onOpenCustomer(customerId: string): void;
 }) {
+  const game = useGameStore((s) => s.game);
   const requestDocument = useGameStore((s) => s.requestDocument);
   const contactCustomer = useGameStore((s) => s.contactCustomer);
   const moveLoan = useGameStore((s) => s.moveLoan);
@@ -59,6 +91,8 @@ export function LoanDetailModal({
             IN {STAGE_DISPLAY_NAME[loan.stage].toUpperCase()} · DAY {loan.daysInPipeline + 1}
           </span>
         </header>
+
+        {game && <OutlookLine loan={loan} />}
 
         <dl className={styles.terms}>
           <div>
