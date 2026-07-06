@@ -10,7 +10,8 @@
 | **Platform** | Browser (desktop-first, 1440×900 design canvas) |
 | **Audience** | Casual players 16+ — no mortgage knowledge required |
 | **Session length** | 10–30 minutes (one to a few in-game days) |
-| **Status** | Design locked (mockup set v1, 10 screens) · implementation not started |
+| **Stack** | TypeScript (strict) · React 18 + Vite · Zustand · CSS Modules + design tokens |
+| **Status** | Design locked (mockup set v1, 10 screens) · implementation not started (Milestone M0 is next) |
 
 ## The idea
 
@@ -46,11 +47,20 @@ Cozy, warm, cheerful, educational. Warm sunset primaries with soft accents, neve
 
 The writing rule: *"We write like a friendly coworker. Short sentences, no jargon. Celebrate small wins. When something goes wrong, offer a next step — never blame the player."*
 
+## Architecture (v1)
+
+The simulation is a **pure TypeScript engine with zero React imports** — the UI renders state and dispatches actions, never computes game logic. Time advances in one-hour ticks (9 AM–6 PM, 10 ticks per day), all randomness flows through a seeded RNG so every day is reproducible and unit-testable, and every tunable number lives in one constants file.
+
+No game engine in v1: eight of the ten screens are pure UI, and the two scene screens (office, world map) are static isometric compositions with gentle motion — SVG + CSS handles them. Phaser is deferred until a post-v1 feature genuinely needs it.
+
+Saves autosave to `localStorage` with JSON export/import; the app deploys as a static build to GitHub Pages.
+
+Development proceeds in nine milestones (M0 scaffold → M8 world map, tutorial & polish), each ending in a working, committed build — see the [technical design document](docs/TECHNICAL_DESIGN_DOCUMENT.md) §8.
+
 ## Repository contents
 
-| File | What it is |
+| Path | What it is |
 |---|---|
-| [GAME_DESIGN_DOCUMENT.md](GAME_DESIGN_DOCUMENT.md) | **Source of truth** for all gameplay, content, and UI decisions. If code and this document disagree, the document wins — or gets updated first. |
-| [mortgage game design](mortgage%20game%20design) | Pencil mockup source (10 screens, 233 design tokens) covering every screen in the game, exported as JSON. |
-
-A `TECHNICAL_DESIGN_DOCUMENT.md` (architecture — React + Phaser + TypeScript, folder structure, save format, milestone plan) is planned next.
+| [docs/GAME_DESIGN_DOCUMENT.md](docs/GAME_DESIGN_DOCUMENT.md) | **The "what"** — source of truth for all gameplay, content, and UI decisions. If code and this document disagree, the document wins — or gets updated first. |
+| [docs/TECHNICAL_DESIGN_DOCUMENT.md](docs/TECHNICAL_DESIGN_DOCUMENT.md) | **The "how"** — stack, architecture, data model, save system, coding standards, and the M0–M8 milestone plan. Every implementation session reads both docs before writing code. |
+| [design/mortgage_game_design.pen](design/mortgage_game_design.pen) | Pencil mockup source (10 screens, 233 design tokens) covering every screen in the game. |
