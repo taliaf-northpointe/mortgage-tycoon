@@ -1,60 +1,186 @@
-import { STAGE_FRIENDLY_LABEL, WEEKDAYS } from '../../../engine/constants';
+import { useEffect, useState } from 'react';
+import {
+  Briefcase,
+  Coins,
+  FolderKanban,
+  Home,
+  Map,
+  Pause,
+  Percent,
+  Play,
+  Settings,
+  Smile,
+  Sparkles,
+  Star,
+  Users,
+} from 'lucide-react';
+import {
+  DAY_END_HOUR,
+  REAL_MS_PER_HOUR,
+  titleForLevel,
+  WEEKDAYS,
+} from '../../../engine/constants';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
 import styles from './Dashboard.module.css';
+import { NotificationPanel } from './NotificationPanel';
+import { OfficeScene } from './OfficeScene';
+
+type Speed = 0 | 1 | 2 | 3;
 
 interface DashboardProps {
   onExitToMenu(): void;
 }
 
-/**
- * M2 placeholder — proves a running, restorable game. The real Dashboard
- * (KPI bar, office scene, notification feed) is Milestone M3.
- */
 export function Dashboard({ onExitToMenu }: DashboardProps) {
   const game = useGameStore((s) => s.game);
+  const [speed, setSpeed] = useState<Speed>(1);
+
+  useEffect(() => {
+    if (!game || speed === 0) return;
+    const id = window.setInterval(() => useGameStore.getState().tick(), REAL_MS_PER_HOUR / speed);
+    return () => window.clearInterval(id);
+  }, [speed, game !== null]);
+
   if (!game) return null;
 
-  const { clock, meta, currencies } = game;
-  const weekday = WEEKDAYS[clock.weekday] ?? '';
+  const { clock, meta, currencies, stats } = game;
   const customers = Object.values(game.customers);
+  const employees = Object.values(game.employees);
   const loans = Object.values(game.loans);
+  const activeLoans = loans.filter((l) => l.stage !== 'completed').length;
+  const happiness =
+    customers.length === 0
+      ? 100
+      : Math.round(customers.reduce((sum, c) => sum + c.happiness, 0) / customers.length);
 
   return (
-    <main className={styles.screen}>
-      <header className={styles.topBar}>
+    <div className={styles.layout}>
+      <nav className={styles.sidebar}>
+        <div className={styles.brand}>
+          <h4>{meta.officeName}</h4>
+          <span>Old Town</span>
+        </div>
+        <NavItem icon={<Home size={17} />} label="Office" active />
+        <NavItem icon={<Users size={17} />} label="Employees" badge={employees.length} soon />
+        <NavItem icon={<FolderKanban size={17} />} label="Pipeline" badge={activeLoans} soon />
+        <NavItem icon={<Sparkles size={17} />} label="Upgrades" soon />
+        <NavItem icon={<Map size={17} />} label="Map" soon />
+        <NavItem icon={<Settings size={17} />} label="Settings" soon />
+
+        <div className={styles.sidebarFooter}>
+          <div className={styles.playerCard}>
+            <span className={styles.avatar}>{initials(meta.playerName)}</span>
+            <div>
+              <strong>{meta.playerName}</strong>
+              <span>
+                {titleForLevel(stats.level)} · Lv {stats.level}
+              </span>
+            </div>
+          </div>
+          <Button variant="ghost" onClick={onExitToMenu}>
+            Save & Menu
+          </Button>
+        </div>
+      </nav>
+
+      <header className={styles.kpiBar}>
         <span className={styles.dayChip}>
-          DAY {clock.day} · {clock.season.toUpperCase()} · {weekday.toUpperCase()}
+          DAY {clock.day} · {clock.season.toUpperCase()} · {(WEEKDAYS[clock.weekday] ?? '').toUpperCase()}
         </span>
-        <h3>{meta.officeName}</h3>
-        <span className={styles.money}>${currencies.coins.toLocaleString('en-US')}</span>
+        <span className={styles.hourChip}>{formatHour(clock.hour)}</span>
+
+        <div className={styles.kpis}>
+          <Kpi icon={<Coins size={15} />} label="Money" value={`$${currencies.coins.toLocaleString('en-US')}`} />
+          <Kpi icon={<Star size={15} />} label="Reputation" value={`${stats.reputation}/100`} />
+          <Kpi icon={<Briefcase size={15} />} label="Active Loans" value={String(activeLoans)} />
+          <Kpi icon={<Smile size={15} />} label="Happiness" value={`${happiness}%`} />
+          <Kpi icon={<Percent size={15} />} label="Interest" value={`${stats.interestRate.toFixed(1)}%`} />
+        </div>
+
+        <div className={styles.speedControls}>
+          <button
+            type="button"
+            className={speed === 0 ? styles.speedActive : styles.speedButton}
+            onClick={() => setSpeed(0)}
+            aria-label="Pause"
+          >
+            <Pause size={13} />
+          </button>
+          {([1, 2, 3] as const).map((s) => (
+            <button
+              key={s}
+              type="button"
+              className={speed === s ? styles.speedActive : styles.speedButton}
+              onClick={() => setSpeed(s)}
+              aria-label={`Speed ${s}x`}
+            >
+              {speed === 0 && s === 1 ? <Play size={13} /> : `${s}×`}
+            </button>
+          ))}
+        </div>
       </header>
 
-      <section className={styles.body}>
-        <h2>Welcome in, {meta.playerName}!</h2>
-        <p className={styles.copy}>
-          Your desk is set up and the coffee is warm. The full office view arrives in Milestone 3 —
-          but your game is saved automatically, so feel free to come and go.
-        </p>
+      <main className={styles.stage}>
+        <OfficeScene employees={employees} />
+      </main>
 
-        {loans.map((loan) => {
-          const customer = customers.find((c) => c.id === loan.customerId);
-          return (
-            <article key={loan.id} className={styles.loanCard}>
-              <h4>{customer ? customer.name : 'A new customer'}</h4>
-              <p>
-                {customer ? customer.dreamHome.name : 'Dream home'} · $
-                {loan.amount.toLocaleString('en-US')}
-              </p>
-              <span className={styles.stageChip}>{STAGE_FRIENDLY_LABEL[loan.stage]}</span>
-            </article>
-          );
-        })}
-
-        <Button variant="ghost" onClick={onExitToMenu}>
-          Back to Main Menu
-        </Button>
-      </section>
-    </main>
+      <NotificationPanel events={game.eventLog} currentHour={clock.hour} />
+    </div>
   );
+}
+
+function NavItem({
+  icon,
+  label,
+  badge,
+  active = false,
+  soon = false,
+}: {
+  icon: React.ReactNode;
+  label: string;
+  badge?: number;
+  active?: boolean;
+  soon?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={active ? styles.navItemActive : styles.navItem}
+      disabled={soon}
+      title={soon ? 'Coming in a later milestone' : undefined}
+    >
+      {icon}
+      <span>{label}</span>
+      {badge !== undefined && <span className={styles.badge}>{badge}</span>}
+    </button>
+  );
+}
+
+function Kpi({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+  return (
+    <div className={styles.kpi}>
+      <span className={styles.kpiIcon}>{icon}</span>
+      <div>
+        <span className={styles.kpiLabel}>{label}</span>
+        <strong className={styles.kpiValue}>{value}</strong>
+      </div>
+    </div>
+  );
+}
+
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase() ?? '')
+    .join('');
+}
+
+function formatHour(hour: number): string {
+  const clamped = Math.min(hour, DAY_END_HOUR);
+  if (hour > DAY_END_HOUR) return 'Closing time!';
+  if (clamped === 12) return '12 PM';
+  return clamped < 12 ? `${clamped} AM` : `${clamped - 12} PM`;
 }

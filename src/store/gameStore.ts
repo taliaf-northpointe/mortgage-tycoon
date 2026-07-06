@@ -3,7 +3,9 @@
  * The UI renders state and dispatches actions; it never computes game logic.
  */
 import { create } from 'zustand';
+import { DAY_END_HOUR } from '../engine/constants';
 import { createStarterState } from '../engine/content/starter';
+import { advanceDay, advanceHour } from '../engine/tick';
 import type { GameState } from '../engine/types';
 import { loadGame, saveGame, serializeSave } from './saveSystem';
 
@@ -17,6 +19,11 @@ interface GameStore {
   adoptImportedGame(state: GameState): void;
   /** Current game as pretty JSON for the export download, or null. */
   exportJson(): string | null;
+  /**
+   * One simulation step for the real-time loop: advance an hour, or roll to
+   * the next morning once the working day is over (TDD §4).
+   */
+  tick(): void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -49,6 +56,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
   exportJson() {
     const { game } = get();
     return game ? serializeSave(game) : null;
+  },
+
+  tick() {
+    const { game } = get();
+    if (!game) return;
+    set({ game: game.clock.hour > DAY_END_HOUR ? advanceDay(game) : advanceHour(game) });
   },
 }));
 

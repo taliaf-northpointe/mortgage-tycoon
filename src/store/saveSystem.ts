@@ -12,8 +12,18 @@ export interface SaveStorage {
   removeItem(key: string): void;
 }
 
+/** In-memory fallback so the store also works headlessly (tests, SSR). */
+const memoryFallback: SaveStorage = (() => {
+  const data = new Map<string, string>();
+  return {
+    getItem: (key: string) => data.get(key) ?? null,
+    setItem: (key: string, value: string) => void data.set(key, value),
+    removeItem: (key: string) => void data.delete(key),
+  };
+})();
+
 function defaultStorage(): SaveStorage {
-  return globalThis.localStorage;
+  return typeof globalThis.localStorage === 'undefined' ? memoryFallback : globalThis.localStorage;
 }
 
 export function serializeSave(state: GameState): string {

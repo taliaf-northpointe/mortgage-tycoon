@@ -116,3 +116,20 @@ export const STARTING_INTEREST_RATE = 6.4;
 
 /** GDD §10 — day star rating; placeholder formula until M7: base + completions, clamped 1–5 */
 export const STAR_RATING_BASE = 2;
+
+/** TDD §4 — real-time pacing: one in-game hour every ~6 seconds at 1× speed */
+export const REAL_MS_PER_HOUR = 6_000;
+
+/** GDD §10 — player level = career title */
+export const LEVEL_TITLES: Record<number, string> = {
+  1: 'Loan Officer',
+  2: 'Senior Loan Officer',
+  3: 'Branch Manager',
+  4: 'CEO',
+  5: 'Regional Director',
+  6: 'Mortgage Mogul',
+};
+
+export function titleForLevel(level: number): string {
+  return LEVEL_TITLES[Math.min(level, 6)] ?? 'Loan Officer';
+}
