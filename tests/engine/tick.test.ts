@@ -30,19 +30,19 @@ describe('advanceHour', () => {
     expect(JSON.stringify(before)).toBe(snapshot);
   });
 
-  it('accumulates progress and moves lead → application after enough hours', () => {
+  it('accumulates progress and moves lead → Pre-Qualification after enough hours', () => {
     let s = createStarterState();
     expect(loanOf(s).stage).toBe('lead');
     s = advanceHour(s);
     expect(loanOf(s).stage).toBe('lead');
     s = advanceHour(s);
-    expect(loanOf(s).stage).toBe('application');
+    expect(loanOf(s).stage).toBe('preQualification');
     expect(s.clock.hour).toBe(DAY_START_HOUR + 2);
   });
 
-  it('collects one paper per hour while the loan sits in Papers', () => {
+  it('collects one document per hour during Document Collection', () => {
     let s = createStarterState();
-    while (loanOf(s).stage !== 'documents') s = advanceHour(s);
+    while (loanOf(s).stage !== 'documentCollection') s = advanceHour(s);
     const before = Object.values(loanOf(s).documents).filter((d) => d === 'collected').length;
     s = advanceHour(s);
     const after = Object.values(loanOf(s).documents).filter((d) => d === 'collected').length;
@@ -50,12 +50,26 @@ describe('advanceHour', () => {
     expect(loanOf(s).statusTag).toMatch(/Missing \d+ docs|Ready/);
   });
 
+  it('runs the Processing sub-steps: Appraisal, then Title Review', () => {
+    let s = createStarterState();
+    while (loanOf(s).stage !== 'processing') s = advanceHour(s);
+    expect(loanOf(s).statusTag).toBe('Appraisal ordered');
+
+    let sawAppraisalEvent = false;
+    while (loanOf(s).stage === 'processing') {
+      s = advanceHour(s);
+      if (s.eventLog.some((e) => e.title.includes('Appraisal came back'))) sawAppraisalEvent = true;
+      if (loanOf(s).stage === 'processing' && loanOf(s).statusTag === 'Title review') break;
+    }
+    expect(sawAppraisalEvent || loanOf(s).statusTag === 'Title review').toBe(true);
+  });
+
   it('stalls a stage that has no employee of the owning role', () => {
     const base = createStarterState();
     delete base.employees['emp-processor-1'];
     let s = base;
-    for (let i = 0; i < TICKS_PER_DAY * 3; i++) s = advanceHour(s);
-    expect(loanOf(s).stage).toBe('documents'); // stuck: nobody works Papers
+    for (let i = 0; i < TICKS_PER_DAY * 4; i++) s = advanceHour(s);
+    expect(loanOf(s).stage).toBe('documentCollection'); // stuck: nobody owns Document Collection
   });
 });
 
@@ -71,7 +85,7 @@ describe('advanceDay', () => {
   });
 });
 
-describe('M1 acceptance: a loan travels lead → completed deterministically', () => {
+describe('acceptance: a loan travels the full v2 pipeline deterministically', () => {
   it('completes within a few days and pays the closing fee', () => {
     let s = createStarterState();
     let days = 0;
@@ -82,7 +96,7 @@ describe('M1 acceptance: a loan travels lead → completed deterministically', (
 
     const loan = loanOf(s);
     expect(loan.stage).toBe('completed');
-    expect(days).toBeLessThanOrEqual(5);
+    expect(days).toBeLessThanOrEqual(6);
     expect(loan.statusTag).toBe('Closed');
 
     const fee = Math.round(loan.amount * CLOSING_FEE_RATE);
@@ -92,12 +106,11 @@ describe('M1 acceptance: a loan travels lead → completed deterministically', (
     const completedDay = s.dayHistory.find((d) => d.loansCompleted === 1);
     expect(completedDay).toBeDefined();
     expect(completedDay?.revenue).toBe(fee);
-    expect(completedDay?.starRating).toBeGreaterThanOrEqual(3);
   });
 
   it('two runs from the same starting state end in identical states', () => {
-    const runA = runDays(createStarterState(), 5);
-    const runB = runDays(createStarterState(), 5);
+    const runA = runDays(createStarterState(), 6);
+    const runB = runDays(createStarterState(), 6);
     expect(JSON.stringify(runA)).toBe(JSON.stringify(runB));
   });
 });

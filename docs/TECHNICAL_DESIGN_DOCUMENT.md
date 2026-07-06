@@ -100,12 +100,16 @@ mortgage-empire-game/
 These are the contract between engine, store, and UI. Extend them only by updating this document first.
 
 ```ts
-type LoanStage = 'lead' | 'application' | 'documents' | 'review'
-               | 'approval' | 'closing' | 'completed';
-type LoanType  = 'firstHome' | 'homePurchase' | 'refinance' | 'investment';
-type Role      = 'loanOfficer' | 'processor' | 'reviewer' | 'closer';
-type DocumentKey = 'proofOfJob' | 'moneyInBank' | 'photoId'
-                 | 'addressHistory' | 'references' | 'taxPapers' | 'homeInspection';
+// v2 (terminology pivot, GDD §3/§4): authentic stages, documents, roles, products.
+type LoanStage = 'lead' | 'preQualification' | 'application'
+               | 'documentCollection' | 'processing' | 'underwriting'
+               | 'clearToClose' | 'closing' | 'completed';
+type LoanProduct = 'conventional' | 'fha' | 'va';
+type LoanPurpose = 'purchase' | 'refinance';
+type Role      = 'loanOfficer' | 'processor' | 'underwriter' | 'closer';
+type DocumentKey = 'employmentVerification' | 'bankStatements' | 'governmentId'
+                 | 'residenceHistory' | 'creditAuthorization' | 'taxReturns'
+                 | 'homeInspectionReport';
 
 interface Customer {
   id: string;
@@ -125,7 +129,8 @@ interface Customer {
 interface Loan {
   id: string;                        // "LN-2026-0001"
   customerId: string;
-  type: LoanType;
+  product: LoanProduct;              // Conventional | FHA | VA (GDD §3, v2)
+  purpose: LoanPurpose;              // Purchase | Refinance only (GDD §3, v2)
   amount: number;
   stage: LoanStage;
   daysInPipeline: number;
@@ -149,7 +154,7 @@ interface Employee {
 }
 
 interface GameState {
-  meta: { saveVersion: 1; playerName: string; officeName: string; createdAt: string };
+  meta: { saveVersion: 2; playerName: string; officeName: string; createdAt: string };
   clock: { day: number; season: 'spring'|'summer'|'fall'|'winter'; weekday: number; hour: number };
   currencies: { coins: number; gems: number; research: number };
   stats: { reputation: number; interestRate: number; xp: number; level: number };
@@ -162,6 +167,8 @@ interface GameState {
   eventLog: GameEvent[];             // today's events; archived on day end
   achievements: Record<string, { earned: boolean; earnedOnDay?: number }>;
   dayHistory: DaySummary[];          // feeds End-of-Day deltas & charts
+  glossary: Record<string, { unlocked: boolean; learned: boolean; learnedOnDay?: number }>;
+                                     // progressive learning state (GDD §4.1); keys from the glossary module
   rngSeed: number;
 }
 
@@ -205,6 +212,13 @@ interface DaySummary {
 - **Autosave** to `localStorage` key `mortgage-empire:save:v1` at end of each day and on tab hide.
 - **Manual export/import** as a downloadable `.json` (the End-of-Day "Save" button) so progress survives cleared browser data.
 - `meta.saveVersion` + a `migrations.ts` map keeps old saves loadable as the schema evolves. **Rule:** any change to `GameState` shape requires a migration entry in the same PR.
+- **v1 → v2** (terminology pivot): renames document keys, maps old stages (`documents`→`documentCollection`, `review`→`processing`, `approval`→`underwriting`), splits `Loan.type` into `product`+`purpose` (`firstHome`→FHA·Purchase, `homePurchase`→Conventional·Purchase, `refinance`→Conventional·Refinance, `investment`→Conventional·Purchase), renames the `reviewer` role to `underwriter`, and adds the empty `glossary` map.
+
+## 6.1 MortgageGlossary service (v2, GDD §4.1)
+
+- `src/engine/content/glossary.ts` is the **single source of truth** for every term: key, display term, category, definition, whyItMatters, whereInProcess (a `LoanStage`), optional funFact, related keys. No definition text may live anywhere else — components render from this module. Centralized strings keep the app localization-ready.
+- UI: `src/ui/glossary/GlossaryTerm.tsx` renders a bold term + ⓘ button and the tooltip (definition / why it matters / journey tracker with highlighted stage / fun fact; pinnable; Escape + outside-click close; adjustable text size persisted in `localStorage` under `mortgage-empire:ui:glossary-size`).
+- Progressive state lives in `GameState.glossary` (per save): `unlocked` = term appeared in gameplay UI; `learned` = player opened it. Learning Center completion % = learned / total.
 
 ## 6. Design tokens
 

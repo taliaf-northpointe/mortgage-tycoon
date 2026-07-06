@@ -2,7 +2,7 @@
  * ALL tunable numbers and shared literals live here, nowhere else (TDD §3).
  * Every constant references the GDD/TDD section it comes from.
  */
-import type { DocumentKey, LoanStage, LoanType, Role, Season } from './types';
+import type { DocumentKey, LoanProduct, LoanPurpose, LoanStage, Role, Season } from './types';
 
 /** GDD §1 */
 export const GAME_TITLE = 'Mortgage Empire';
@@ -10,6 +10,9 @@ export const TAGLINE = 'Build your neighborhood. Own the block.';
 
 /** TDD §5 — localStorage save key */
 export const SAVE_KEY = 'mortgage-empire:save:v1';
+
+/** TDD §6.1 — localStorage key for the glossary text-size preference */
+export const GLOSSARY_SIZE_KEY = 'mortgage-empire:ui:glossary-size';
 
 /** TDD §4 — the working day runs 9 AM → 6 PM, 10 ticks/day */
 export const DAY_START_HOUR = 9;
@@ -21,47 +24,64 @@ export const DAYS_PER_SEASON = 28;
 export const SEASONS: readonly Season[] = ['spring', 'summer', 'fall', 'winter'];
 export const WEEKDAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'] as const;
 
-/** GDD §3 — the seven pipeline stages, in order, with fixed progress % */
+/** GDD §3 v2 — the nine pipeline stages, in order */
 export const STAGE_ORDER: readonly LoanStage[] = [
   'lead',
+  'preQualification',
   'application',
-  'documents',
-  'review',
-  'approval',
+  'documentCollection',
+  'processing',
+  'underwriting',
+  'clearToClose',
   'closing',
   'completed',
 ];
 
+/** GDD §3 v2 — fixed progress % per stage */
 export const STAGE_PROGRESS_PCT: Record<LoanStage, number> = {
-  lead: 15,
-  application: 30,
-  documents: 45,
-  review: 60,
-  approval: 75,
-  closing: 90,
+  lead: 6,
+  preQualification: 14,
+  application: 24,
+  documentCollection: 36,
+  processing: 50,
+  underwriting: 64,
+  clearToClose: 76,
+  closing: 88,
   completed: 100,
 };
 
-/** GDD §3 — friendly journey labels shown on the Customer screen */
-export const STAGE_FRIENDLY_LABEL: Record<LoanStage, string> = {
-  lead: 'Hello!',
-  application: 'Filling forms',
-  documents: 'Papers',
-  review: 'Checking',
-  approval: 'Yes/No',
-  closing: 'Signing',
-  completed: 'Home!',
+/** GDD §3 v2 — stage names as shown on the Pipeline board */
+export const STAGE_DISPLAY_NAME: Record<LoanStage, string> = {
+  lead: 'Lead',
+  preQualification: 'Pre-Qualification',
+  application: 'Application',
+  documentCollection: 'Document Collection',
+  processing: 'Processing',
+  underwriting: 'Underwriting',
+  clearToClose: 'Clear to Close',
+  closing: 'Closing',
+  completed: 'Complete',
 };
 
-/** GDD §5 — which role owns which stage */
+/** GDD §5 v2 — which role owns which stage */
 export const ROLE_BY_STAGE: Record<LoanStage, Role> = {
   lead: 'loanOfficer',
+  preQualification: 'loanOfficer',
   application: 'loanOfficer',
-  documents: 'processor',
-  review: 'reviewer',
-  approval: 'reviewer',
+  documentCollection: 'processor',
+  processing: 'processor',
+  underwriting: 'underwriter',
+  clearToClose: 'closer',
   closing: 'closer',
   completed: 'closer',
+};
+
+/** GDD §5 v2 — role display names */
+export const ROLE_DISPLAY_NAME: Record<Role, string> = {
+  loanOfficer: 'Loan Officer',
+  processor: 'Processor',
+  underwriter: 'Underwriter',
+  closer: 'Closer',
 };
 
 /**
@@ -70,56 +90,71 @@ export const ROLE_BY_STAGE: Record<LoanStage, Role> = {
  */
 export const STAGE_HOURS_REQUIRED: Record<LoanStage, number> = {
   lead: 2,
+  preQualification: 3,
   application: 3,
-  documents: 2, // plus one hour per paper the customer still owes (M1 behavior, see tick.ts)
-  review: 4,
-  approval: 2,
-  closing: 5,
+  documentCollection: 2, // plus one hour per document the customer still owes (see tick.ts)
+  processing: 6, // includes the Appraisal (first half) and Title Review (second half) sub-steps
+  underwriting: 4,
+  clearToClose: 3,
+  closing: 4,
   completed: 0,
 };
 
-/**
- * GDD §4 — which papers each loan type needs. Refinance skips some;
- * Investment needs the full set.
- */
-export const REQUIRED_DOCS_BY_LOAN_TYPE: Record<LoanType, readonly DocumentKey[]> = {
-  firstHome: ['proofOfJob', 'moneyInBank', 'photoId', 'addressHistory', 'references', 'taxPapers', 'homeInspection'],
-  homePurchase: ['proofOfJob', 'moneyInBank', 'photoId', 'addressHistory', 'taxPapers', 'homeInspection'],
-  refinance: ['proofOfJob', 'moneyInBank', 'photoId', 'taxPapers'],
-  investment: ['proofOfJob', 'moneyInBank', 'photoId', 'addressHistory', 'references', 'taxPapers', 'homeInspection'],
-};
+/** GDD §3 v2 — Processing sub-steps: hours into the stage when each completes */
+export const PROCESSING_APPRAISAL_HOURS = 3; // appraisal comes back
+export const PROCESSING_TITLE_HOURS = 6; // title review wraps (== stage total)
 
-/** GDD §3 — loan type display names */
-export const LOAN_TYPE_LABEL: Record<LoanType, string> = {
-  firstHome: 'First Home',
-  homePurchase: 'Home Purchase',
+/** GDD §3 v2 — loan products & purposes (restricted set) */
+export const LOAN_PRODUCTS: readonly LoanProduct[] = ['conventional', 'fha', 'va'];
+export const LOAN_PRODUCT_LABEL: Record<LoanProduct, string> = {
+  conventional: 'Conventional',
+  fha: 'FHA',
+  va: 'VA',
+};
+export const LOAN_PURPOSE_LABEL: Record<LoanPurpose, string> = {
+  purchase: 'Purchase',
   refinance: 'Refinance',
-  investment: 'Investment',
-};
-
-/** GDD §3 — stage names as shown on the Pipeline board */
-export const STAGE_DISPLAY_NAME: Record<LoanStage, string> = {
-  lead: 'Lead',
-  application: 'Application',
-  documents: 'Documents',
-  review: 'Review',
-  approval: 'Approval',
-  closing: 'Closing',
-  completed: 'Completed',
 };
 
 /** GDD §4 action 3 — Contact Customer happiness boost (full math lands in M5) */
 export const CONTACT_HAPPINESS_BOOST = 2;
 
-/** GDD §4 — plain-language paper names (players never see jargon) */
-export const DOC_FRIENDLY_NAME: Record<DocumentKey, string> = {
-  proofOfJob: 'Proof of Job',
-  moneyInBank: 'Money in the Bank',
-  photoId: 'Photo ID',
-  addressHistory: 'Home Address History',
-  references: 'References',
-  taxPapers: 'Tax Papers',
-  homeInspection: 'Home Inspection',
+/**
+ * GDD §4 v2 — which loan documents each purpose needs. Refinance skips several.
+ */
+export const REQUIRED_DOCS_BY_PURPOSE: Record<LoanPurpose, readonly DocumentKey[]> = {
+  purchase: [
+    'employmentVerification',
+    'bankStatements',
+    'governmentId',
+    'residenceHistory',
+    'creditAuthorization',
+    'taxReturns',
+    'homeInspectionReport',
+  ],
+  refinance: ['employmentVerification', 'bankStatements', 'governmentId', 'creditAuthorization', 'taxReturns'],
+};
+
+/** GDD §4 v2 — authentic document names (each glossary-linked in the UI) */
+export const DOC_DISPLAY_NAME: Record<DocumentKey, string> = {
+  employmentVerification: 'Employment Verification',
+  bankStatements: 'Bank Statements',
+  governmentId: 'Government-Issued ID',
+  residenceHistory: 'Residence History',
+  creditAuthorization: 'Credit Report Authorization',
+  taxReturns: 'Tax Returns',
+  homeInspectionReport: 'Home Inspection Report',
+};
+
+/** GDD §4 v2 — friendly sub-labels shown under document names */
+export const DOC_FRIENDLY_SUBLABEL: Record<DocumentKey, string> = {
+  employmentVerification: 'Recent paychecks from their job',
+  bankStatements: 'Savings and checking history',
+  governmentId: 'Driver license or passport',
+  residenceHistory: 'Where they have lived',
+  creditAuthorization: 'Permission to check their credit',
+  taxReturns: "Last year's taxes",
+  homeInspectionReport: "The inspector's write-up",
 };
 
 /** GDD §8 — closing fee as a share of loan amount (target 1.5–2%) */
@@ -155,3 +190,23 @@ export const LEVEL_TITLES: Record<number, string> = {
 export function titleForLevel(level: number): string {
   return LEVEL_TITLES[Math.min(level, 6)] ?? 'Loan Officer';
 }
+
+/**
+ * GDD §3 v2 — the full journey as shown in glossary "Where you are" trackers
+ * and the Customer screen. Sub-steps map onto their containing board stage.
+ */
+export const JOURNEY_DISPLAY: readonly { label: string; stage: LoanStage }[] = [
+  { label: 'Lead', stage: 'lead' },
+  { label: 'Pre-Qualification', stage: 'preQualification' },
+  { label: 'Application', stage: 'application' },
+  { label: 'Document Collection', stage: 'documentCollection' },
+  { label: 'Processing', stage: 'processing' },
+  { label: 'Appraisal', stage: 'processing' },
+  { label: 'Title Review', stage: 'processing' },
+  { label: 'Underwriting', stage: 'underwriting' },
+  { label: 'Conditional Approval', stage: 'underwriting' },
+  { label: 'Clear to Close', stage: 'clearToClose' },
+  { label: 'Closing', stage: 'closing' },
+  { label: 'Funding', stage: 'closing' },
+  { label: 'Loan Complete', stage: 'completed' },
+];

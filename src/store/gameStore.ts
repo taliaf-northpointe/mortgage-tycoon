@@ -29,6 +29,9 @@ interface GameStore {
   requestDocument(loanId: string, key: DocumentKey): void;
   contactCustomer(loanId: string): void;
   moveLoan(loanId: string): void;
+  /** GDD §4.1 progressive learning */
+  unlockTerm(key: string): void;
+  learnTerm(key: string): void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
@@ -88,6 +91,35 @@ export const useGameStore = create<GameStore>((set, get) => ({
     if (!game) return;
     const next = moveLoanForward(game, loanId);
     if (next !== game) set({ game: next });
+  },
+
+  unlockTerm(key) {
+    const { game } = get();
+    if (!game || game.glossary[key]?.unlocked) return;
+    const existing = game.glossary[key];
+    set({
+      game: {
+        ...game,
+        glossary: {
+          ...game.glossary,
+          [key]: { unlocked: true, learned: existing?.learned ?? false, ...(existing?.learnedOnDay !== undefined ? { learnedOnDay: existing.learnedOnDay } : {}) },
+        },
+      },
+    });
+  },
+
+  learnTerm(key) {
+    const { game } = get();
+    if (!game || game.glossary[key]?.learned) return;
+    set({
+      game: {
+        ...game,
+        glossary: {
+          ...game.glossary,
+          [key]: { unlocked: true, learned: true, learnedOnDay: game.clock.day },
+        },
+      },
+    });
   },
 }));
 

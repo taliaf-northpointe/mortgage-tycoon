@@ -3,7 +3,7 @@
  * actions). Pure: each returns a new state, or the ORIGINAL state unchanged
  * when the action isn't allowed — the UI can rely on referential equality.
  */
-import { CONTACT_HAPPINESS_BOOST, DOC_FRIENDLY_NAME } from './constants';
+import { CONTACT_HAPPINESS_BOOST, DOC_DISPLAY_NAME } from './constants';
 import { missingDocs, requirementsMet } from './loans';
 import { advanceLoanStage, missingDocsTag } from './tick';
 import type { DocumentKey, GameEvent, GameState } from './types';
@@ -16,7 +16,7 @@ function pushEvent(state: GameState, category: GameEvent['category'], title: str
   state.eventLog.push({ id: `evt-${day}-${hour}-${n}`, day, hour, category, title, detail });
 }
 
-/** Ask the customer for a specific missing paper. */
+/** Ask the customer for a specific missing loan document. */
 export function requestDocument(state: GameState, loanId: string, key: DocumentKey): GameState {
   const loan = state.loans[loanId];
   if (!loan || loan.documents[key] !== 'missing') return state;
@@ -25,14 +25,14 @@ export function requestDocument(state: GameState, loanId: string, key: DocumentK
   const l = s.loans[loanId];
   if (!l) return state;
   l.documents[key] = 'requested';
-  l.statusTag = l.stage === 'documents' ? missingDocsTag(l) : l.statusTag;
+  l.statusTag = l.stage === 'documentCollection' ? missingDocsTag(l) : l.statusTag;
 
   const customer = s.customers[l.customerId];
   pushEvent(
     s,
     'customers',
-    `You asked ${customer ? customer.name : 'the customer'} for a paper`,
-    `${DOC_FRIENDLY_NAME[key]} — it'll come in first.`,
+    `You asked ${customer ? customer.name : 'the customer'} for a document`,
+    `${DOC_DISPLAY_NAME[key]} — it'll come in first.`,
   );
   return s;
 }

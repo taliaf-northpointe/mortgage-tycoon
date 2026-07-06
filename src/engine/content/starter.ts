@@ -17,7 +17,7 @@ export const STARTER_CUSTOMER_ID = 'cust-sarah-chen';
 export function createStarterState(rngSeed = 42): GameState {
   return {
     meta: {
-      saveVersion: 1,
+      saveVersion: 2,
       playerName: 'You',
       officeName: 'Old Town Office',
       // Fixed for determinism; the real New Game flow (M2) stamps the actual date.
@@ -52,11 +52,13 @@ export function createStarterState(rngSeed = 42): GameState {
       [STARTER_LOAN_ID]: {
         id: STARTER_LOAN_ID,
         customerId: STARTER_CUSTOMER_ID,
-        type: 'firstHome',
+        // FHA Purchase — the classic first-time-homebuyer loan (GDD §3 v2)
+        product: 'fha',
+        purpose: 'purchase',
         amount: 220_000,
         stage: 'lead',
         daysInPipeline: 0,
-        documents: initialDocuments('firstHome'),
+        documents: initialDocuments('purchase'),
         assignedEmployeeId: 'emp-loan-officer-1',
         statusTag: null,
         rate: STARTING_INTEREST_RATE,
@@ -85,10 +87,10 @@ export function createStarterState(rngSeed = 42): GameState {
         salaryMonthly: 3_600,
         tag: null,
       },
-      'emp-reviewer-1': {
-        id: 'emp-reviewer-1',
+      'emp-underwriter-1': {
+        id: 'emp-underwriter-1',
         name: 'Priya Nair',
-        role: 'reviewer',
+        role: 'underwriter',
         skill: 3,
         happiness: 80,
         workload: 15,
@@ -118,6 +120,7 @@ export function createStarterState(rngSeed = 42): GameState {
     eventLog: [],
     achievements: {},
     dayHistory: [],
+    glossary: {},
     rngSeed,
   };
 }

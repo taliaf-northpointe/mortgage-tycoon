@@ -8,10 +8,11 @@ import {
   DAY_END_HOUR,
   DAY_START_HOUR,
   DAYS_PER_SEASON,
-  DOC_FRIENDLY_NAME,
+  DOC_DISPLAY_NAME,
+  PROCESSING_APPRAISAL_HOURS,
   ROLE_BY_STAGE,
   SEASONS,
-  STAGE_FRIENDLY_LABEL,
+  STAGE_DISPLAY_NAME,
   STAGE_HOURS_REQUIRED,
   STAR_RATING_BASE,
   XP_PER_COMPLETED_LOAN,
@@ -37,14 +38,15 @@ export function missingDocsTag(loan: Loan): string | null {
 }
 
 /**
- * Move a loan into its next stage: reassign, retag, log the event, and pay
- * out on completion. Mutates the (already cloned) state. Shared by the tick
- * loop and the player's "Move to next stage" action (GDD §3).
+ * Move a loan into its next stage: reassign, retag, log the milestone events,
+ * and pay out on completion. Mutates the (already cloned) state. Shared by the
+ * tick loop and the player's "Move to next stage" action (GDD §3).
  */
 export function advanceLoanStage(state: GameState, loan: Loan): void {
   const to = nextStage(loan.stage);
   if (!to) return;
 
+  const from = loan.stage;
   loan.stage = to;
   loan.progressHours = 0;
   loan.assignedEmployeeId = findEmployeeIdForRole(state, ROLE_BY_STAGE[to]);
@@ -60,17 +62,50 @@ export function advanceLoanStage(state: GameState, loan: Loan): void {
       state,
       'loans',
       `🎉 ${customerName} got the keys!`,
-      `${customer ? customer.dreamHome.name : 'Their new home'} is officially theirs. +$${fee.toLocaleString('en-US')}`,
+      `The loan funded and ${customer ? customer.dreamHome.name : 'their new home'} is officially theirs. +$${fee.toLocaleString('en-US')}`,
     );
     return;
   }
 
-  loan.statusTag = to === 'documents' ? missingDocsTag(loan) : null;
+  loan.statusTag = to === 'documentCollection' ? missingDocsTag(loan) : null;
+
+  // Milestone sub-step events (GDD §3 v2 — sub-steps live inside stages).
+  if (from === 'application' && to === 'documentCollection') {
+    pushEvent(
+      state,
+      'loans',
+      `Loan Estimate sent to ${customerName}`,
+      'Their Loan Estimate spells out the rate, payment, and closing costs — now we gather documents.',
+    );
+    return;
+  }
+  if (to === 'processing') {
+    loan.statusTag = 'Appraisal ordered';
+  }
+  if (from === 'underwriting' && to === 'clearToClose') {
+    pushEvent(
+      state,
+      'loans',
+      `Conditional Approval for ${customerName}!`,
+      'Underwriting says yes — just a few conditions to clear, then it’s Clear to Close.',
+    );
+    return;
+  }
+  if (from === 'clearToClose' && to === 'closing') {
+    pushEvent(
+      state,
+      'loans',
+      `${customerName} is Clear to Close`,
+      'The Closing Disclosure is out for review. Next stop: the signing table.',
+    );
+    return;
+  }
+
   pushEvent(
     state,
     'loans',
     `${customerName} is on to the next step`,
-    `Now in "${STAGE_FRIENDLY_LABEL[to]}".`,
+    `Now in ${STAGE_DISPLAY_NAME[to]}.`,
   );
 }
 
@@ -85,10 +120,10 @@ function workLoan(state: GameState, loan: Loan): void {
   }
   if (!loan.assignedEmployeeId) return; // stalled: nobody owns this stage yet
 
-  // M1 placeholder: while a loan sits in Papers, the customer sends in one
-  // owed paper per hour — papers the player has requested arrive first.
-  // M5 replaces this with the full trait-driven request/response loop.
-  if (loan.stage === 'documents') {
+  // Placeholder until M5: while a loan sits in Document Collection, the
+  // customer sends in one owed document per hour — documents the player has
+  // requested arrive first. M5 replaces this with the trait-driven loop.
+  if (loan.stage === 'documentCollection') {
     const missing = missingDocs(loan);
     const nextDoc = missing.find((key) => loan.documents[key] === 'requested') ?? missing[0];
     if (nextDoc) {
@@ -99,17 +134,30 @@ function workLoan(state: GameState, loan: Loan): void {
       pushEvent(
         state,
         'customers',
-        `${customer ? customer.name : 'A customer'} sent a paper`,
+        `${customer ? customer.name : 'A customer'} sent a document`,
         remaining === 0
-          ? `${DOC_FRIENDLY_NAME[nextDoc]} is in — that's everything!`
-          : `${DOC_FRIENDLY_NAME[nextDoc]} is in — ${remaining} more to go!`,
+          ? `${DOC_DISPLAY_NAME[nextDoc]} is in — that's everything!`
+          : `${DOC_DISPLAY_NAME[nextDoc]} is in — ${remaining} more to go!`,
       );
-      return; // this hour went to paperwork
+      return; // this hour went to document collection
     }
   }
 
   // TDD §4c — accumulate progress-hours toward the current stage.
   loan.progressHours += 1;
+
+  // Processing sub-steps (GDD §3 v2): Appraisal, then Title Review.
+  if (loan.stage === 'processing' && loan.progressHours === PROCESSING_APPRAISAL_HOURS) {
+    loan.statusTag = 'Title review';
+    const customer = state.customers[loan.customerId];
+    pushEvent(
+      state,
+      'loans',
+      'The Appraisal came back',
+      `${customer ? customer.dreamHome.name : 'The home'} appraised nicely. Title Review is up next.`,
+    );
+  }
+
   if (loan.progressHours < STAGE_HOURS_REQUIRED[loan.stage] || !requirementsMet(loan)) return;
 
   advanceLoanStage(state, loan);

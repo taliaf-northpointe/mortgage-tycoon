@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { REAL_MS_PER_HOUR } from './engine/constants';
 import { useGameStore } from './store/gameStore';
 import { Dashboard } from './ui/screens/Dashboard/Dashboard';
+import { LearningCenter } from './ui/screens/LearningCenter/LearningCenter';
 import { MainMenu } from './ui/screens/MainMenu/MainMenu';
 import { Pipeline } from './ui/screens/Pipeline/Pipeline';
 
@@ -10,6 +11,7 @@ export type ScreenId =
   | 'mainMenu'
   | 'dashboard'
   | 'pipeline'
+  | 'learning'
   | 'customer'
   | 'employees'
   | 'upgrades'
@@ -36,6 +38,9 @@ export function App() {
   }
   if (screen === 'pipeline') {
     return <Pipeline onBack={() => setScreen('dashboard')} />;
+  }
+  if (screen === 'learning') {
+    return <LearningCenter onBack={() => setScreen('dashboard')} />;
   }
   return (
     <Dashboard

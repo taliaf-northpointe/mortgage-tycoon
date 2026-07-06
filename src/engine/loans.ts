@@ -1,23 +1,23 @@
 /**
- * Loan stage transitions and requirements (TDD §2.1, GDD §3–4).
+ * Loan stage transitions and requirements (TDD §2.1, GDD §3–4 v2).
  * Pure functions only — no React, no magic numbers.
  */
-import { REQUIRED_DOCS_BY_LOAN_TYPE, STAGE_ORDER } from './constants';
-import type { DocStatus, DocumentKey, Loan, LoanType } from './types';
+import { REQUIRED_DOCS_BY_PURPOSE, STAGE_ORDER } from './constants';
+import type { DocStatus, DocumentKey, Loan, LoanPurpose } from './types';
 
-const ALL_DOC_KEYS: readonly DocumentKey[] = [
-  'proofOfJob',
-  'moneyInBank',
-  'photoId',
-  'addressHistory',
-  'references',
-  'taxPapers',
-  'homeInspection',
+export const ALL_DOC_KEYS: readonly DocumentKey[] = [
+  'employmentVerification',
+  'bankStatements',
+  'governmentId',
+  'residenceHistory',
+  'creditAuthorization',
+  'taxReturns',
+  'homeInspectionReport',
 ];
 
-/** Build the initial document checklist for a new loan of the given type. */
-export function initialDocuments(type: LoanType): Record<DocumentKey, DocStatus> {
-  const required = REQUIRED_DOCS_BY_LOAN_TYPE[type];
+/** Build the initial loan-documents checklist for a new loan. */
+export function initialDocuments(purpose: LoanPurpose): Record<DocumentKey, DocStatus> {
+  const required = REQUIRED_DOCS_BY_PURPOSE[purpose];
   const documents = {} as Record<DocumentKey, DocStatus>;
   for (const key of ALL_DOC_KEYS) {
     documents[key] = required.includes(key) ? 'missing' : 'notRequired';
@@ -25,7 +25,7 @@ export function initialDocuments(type: LoanType): Record<DocumentKey, DocStatus>
   return documents;
 }
 
-/** Papers the customer still owes (missing or requested, and required). */
+/** Documents the customer still owes (missing or requested, and required). */
 export function missingDocs(loan: Loan): DocumentKey[] {
   return ALL_DOC_KEYS.filter((key) => {
     const status = loan.documents[key];
@@ -35,7 +35,7 @@ export function missingDocs(loan: Loan): DocumentKey[] {
 
 /** Stage requirements beyond progress-hours (TDD §4a). */
 export function requirementsMet(loan: Loan): boolean {
-  if (loan.stage === 'documents') return missingDocs(loan).length === 0;
+  if (loan.stage === 'documentCollection') return missingDocs(loan).length === 0;
   return true;
 }
 

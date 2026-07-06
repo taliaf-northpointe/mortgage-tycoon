@@ -1,15 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { ArrowLeft, Search } from 'lucide-react';
 import {
-  LOAN_TYPE_LABEL,
+  LOAN_PRODUCT_LABEL,
+  LOAN_PURPOSE_LABEL,
   STAGE_DISPLAY_NAME,
   STAGE_ORDER,
   STAGE_PROGRESS_PCT,
   WEEKDAYS,
 } from '../../../engine/constants';
+import { STAGE_GLOSSARY_KEY } from '../../../engine/content/glossary';
 import type { Loan, LoanStage } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
 import { Confetti } from '../../components/Confetti';
+import { GlossaryTerm } from '../../glossary/GlossaryTerm';
 import { initials, moneyCompact, moneyFull } from '../../format';
 import { LoanDetailModal } from './LoanDetailModal';
 import styles from './Pipeline.module.css';
@@ -96,10 +99,17 @@ export function Pipeline({ onBack }: PipelineProps) {
       <section className={styles.board} aria-label="Loan pipeline board">
         {STAGE_ORDER.map((stage) => {
           const stageLoans = visibleLoans.filter((loan) => loan.stage === stage);
+          const glossaryKey = STAGE_GLOSSARY_KEY[stage];
           return (
             <div key={stage} className={styles.column}>
               <header className={styles.columnHeader}>
-                <h4>{STAGE_DISPLAY_NAME[stage]}</h4>
+                <h4>
+                  {glossaryKey ? (
+                    <GlossaryTerm termKey={glossaryKey}>{STAGE_DISPLAY_NAME[stage]}</GlossaryTerm>
+                  ) : (
+                    STAGE_DISPLAY_NAME[stage]
+                  )}
+                </h4>
                 <span>{stageLoans.length}</span>
               </header>
               {stageLoans.map((loan) => (
@@ -143,7 +153,9 @@ function LoanCard({
         <span className={styles.cardAvatar}>{initials(customerName)}</span>
         <div>
           <strong>{customerName}</strong>
-          <span className={styles.cardType}>{LOAN_TYPE_LABEL[loan.type]}</span>
+          <span className={styles.cardType}>
+            {LOAN_PRODUCT_LABEL[loan.product]} · {LOAN_PURPOSE_LABEL[loan.purpose]}
+          </span>
         </div>
         <span className={styles.cardAmount}>{moneyCompact(loan.amount)}</span>
       </div>

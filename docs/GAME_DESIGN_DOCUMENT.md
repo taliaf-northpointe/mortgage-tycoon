@@ -1,7 +1,7 @@
 # Mortgage Empire — Game Design Document
 
-**Version:** 1.0 · July 2026
-**Status:** Design locked to Pencil mockup set v1 (`mortgage_game_design.pen`, 10 screens)
+**Version:** 2.0 · July 2026 — *terminology pivot: authentic mortgage terms + glossary (supersedes v1's "no jargon" rule)*
+**Status:** Design locked to Pencil mockup set v1 (`mortgage_game_design.pen`, 10 screens); §3/§4/§4.1/§5/§12 updated beyond the mockups
 **Purpose:** This is the source of truth for all gameplay, content, and UI decisions. Every implementation session (human or AI) should reference this document. If code and this document disagree, this document wins — or this document gets updated first.
 
 ---
@@ -17,7 +17,7 @@
 | **Target audience** | Casual players 16+; no mortgage knowledge required |
 | **Platform** | Browser (desktop-first, 1440×900 design canvas) |
 | **Session length** | 10–30 minutes (one to a few in-game days) |
-| **Educational goal** | A player who finishes the tutorial and a few days of play should be able to describe the home-loan journey in plain language, without ever reading jargon |
+| **Educational goal** | A player who finishes the tutorial and a few days of play should be able to describe the real home-loan journey — using the real terms (Underwriting, Loan Estimate, Clear to Close) — because the game taught them gently as they played |
 
 **Elevator pitch:** Mortgage Empire is a cozy management game where you guide real, memorable people — not loan numbers — through the journey of buying a home. You grow from a single desk into a regional mortgage company by keeping customers happy, your team healthy, and your pipeline flowing.
 
@@ -27,9 +27,9 @@
 
 **Design pillars:**
 1. **People, not paperwork.** Every loan is a character with a face, traits, and a dream home.
-2. **Plain language everywhere.** "Papers" not "documentation," "Yes/No" not "underwriting decision." (Codified in the Style Guide voice rules — Section 12.)
+2. **Real terms, gently taught.** The game uses authentic mortgage terminology (Underwriting, Loan Estimate, Closing Disclosure) — and every term is glossary-linked with a friendly one-tap explanation (§4.1). Players learn the real process by osmosis, never by being lectured.
 3. **Cozy, never punishing.** Setbacks create gentle pressure and choices, not failure screens.
-4. **Simplified but truthful.** The 7-stage loan journey mirrors the real process closely enough to be genuinely educational.
+4. **Simplified but truthful.** The pipeline mirrors the real process closely enough to be genuinely educational — without regulatory complexity, lender-specific edge cases, or term overload.
 
 ---
 
@@ -63,27 +63,31 @@ More (and bigger) customers arrive
 
 ## 3. Loan Stages (The Pipeline)
 
-Seven stages, presented as a Kanban board. Stage names and the fixed progress % each stage represents (as designed in the Pipeline mockup):
+**v2 pivot:** the pipeline now follows the real mortgage workflow with authentic stage names. Nine stages appear as Kanban columns; the remaining real-world steps are **sub-steps inside stages** (status tags + feed events), never extra columns — clarity over realism overload.
 
-| # | Stage | Progress | Friendly journey label (Customer screen) | What happens |
-|---|-------|----------|------------------------------------------|--------------|
-| 1 | Lead | 15% | "Hello!" | Customer is interested; a Loan Officer must engage them |
-| 2 | Application | 30% | "Filling forms" | Basic info collected |
-| 3 | Documents | 45% | "Papers" | Required documents gathered; most blockers live here |
-| 4 | Review | 60% | "Checking" | A Reviewer checks the file |
-| 5 | Approval | 75% | "Yes/No" | The decision is made |
-| 6 | Closing | 90% | "Signing" | Paperwork signed with a Closer |
-| 7 | Completed | 100% | "Home!" | Keys handed over; revenue earned; celebration moment |
+| # | Board stage | Progress | Sub-steps handled inside the stage | Owner |
+|---|-------------|----------|-------------------------------------|-------|
+| 1 | Lead | 6% | — | Loan Officer |
+| 2 | Pre-Qualification | 14% | Loan Consultation | Loan Officer |
+| 3 | Application | 24% | Loan Estimate issued (event) | Loan Officer |
+| 4 | Document Collection | 36% | per-document checklist; most blockers live here | Processor |
+| 5 | Processing | 50% | Appraisal ordered/complete · Title Review (status tags + events) | Processor |
+| 6 | Underwriting | 64% | Conditional Approval (event on exit) | Underwriter |
+| 7 | Clear to Close | 76% | Closing Disclosure sent (event) | Closer |
+| 8 | Closing | 88% | Signing · Funding (event on exit) | Closer |
+| 9 | Complete | 100% | keys handed over 🎉; loan enters **Servicing** (monthly payment trickle, §8) | Closer |
 
-**Loan card data (Pipeline board):** avatar/initials, customer name, loan type, loan amount (e.g. `$340K`), days in pipeline, progress %, and optional status tag.
+The full journey shown in glossary trackers (and the Customer screen journey tracker) reads: Lead → Pre-Qualification → Application → Document Collection → Processing → Appraisal → Title Review → Underwriting → Conditional Approval → Clear to Close → Closing → Funding → Loan Complete.
 
-**Status tags seen in mockups (initial tag vocabulary):** `Missing 2 docs`, `Rate lock`, `Ready`, `Sign 8/12`, `Closed`.
+**Loan card data (Pipeline board):** avatar/initials, customer name, loan product + purpose, loan amount (e.g. `$340K`), days in pipeline, progress %, and optional status tag.
 
-**Loan types (4 at launch):**
-- **First Home** — smaller amounts ($195K–$240K range in mockups); pairs with first-time-buyer characters who need more guidance but give big happiness payoffs.
-- **Home Purchase** — the standard type ($275K–$355K range).
-- **Refinance** — existing homeowners ($210K–$470K); typically faster, fewer documents.
-- **Investment** — largest amounts ($525K–$685K); impatient customers, higher revenue, higher walk-away risk.
+**Status tag vocabulary:** `Missing 2 docs`, `Ready`, `Appraisal ordered`, `Title review`, `Rate lock`, `Closed`.
+
+**Loan products (3) × purpose (2) at launch — restricted by design:**
+- **Conventional** — the standard product; Purchase or Refinance.
+- **FHA** — lower down payments, popular with first-time buyers (Sarah Chen's loan). Purchase or Refinance.
+- **VA** — for veterans and service members; famously low/no down payment. Purchase or Refinance.
+- Purposes: **Purchase** and **Refinance** only. No investment/jumbo/cash-out complexity at launch.
 
 **Pipeline summary metrics (top of Pipeline screen):** Total Loans, Total Volume ($), Avg. Time in Pipeline (days), Conversion Rate (%) — each with a delta vs. prior period.
 
@@ -100,23 +104,23 @@ Customers are the emotional core. Every customer has:
 - **Happiness:** 0–100%, shown with a smile meter. Rises with speed, communication, and successful stages; falls with delays and repeated requests. Weekly trend shown (e.g. "↑ 8 this week").
 - **Trust Level:** 1–5 bars, a slower-moving stat built through good service; high trust makes customers forgiving of hiccups and generates referrals.
 - **Dream Home card:** home name + style ("Cozy Bungalow"), neighborhood, beds/baths, a category chip ("Family Home"), Home Price, Down Payment, and estimated Monthly payment. This is where the game quietly teaches price → down payment → monthly payment relationships.
-- **Journey tracker:** the 7 friendly-labeled stages with the current position and an encouraging status line ("You're doing great! Waiting on 2 more documents to move ahead.").
-- **Document checklist** with plain-language names (real-world equivalent in parentheses for the design team only — players never see jargon):
+- **Journey tracker:** the full loan journey (§3) with the current position and an encouraging status line ("You're doing great! Waiting on 2 more documents to move ahead.").
+- **Loan Documents checklist** — authentic document names (v2 pivot), each glossary-linked (§4.1), with a friendly sub-label:
 
-| In-game name | Sub-label | Real-world equivalent |
-|---|---|---|
-| Proof of Job | Recent paychecks | Pay stubs / employment verification |
-| Money in the Bank | Savings statements | Bank/asset statements |
-| Photo ID | Driver license | Identity verification |
-| Home Address History | Where she has lived | Residence history |
-| References | People who vouch for her | References / VOR |
-| Tax Papers | From last year | Tax returns / W-2s |
-| Home Inspection | Report from inspector | Inspection/appraisal |
+| In-game name (glossary-linked) | Friendly sub-label |
+|---|---|
+| Employment Verification | Recent paychecks from her job |
+| Bank Statements | Savings and checking history |
+| Government-Issued ID | Driver license or passport |
+| Residence History | Where she has lived |
+| Credit Report Authorization | Permission to check her credit |
+| Tax Returns | Last year's taxes |
+| Home Inspection Report | The inspector's write-up |
 
-Not every loan requires every document — Refinance skips some; Investment adds extras. Checklist shows "5 of 7 collected · 2 more to go!" style progress with an encouragement chip ("Almost there!").
+Not every loan requires every document — Refinance skips several. Checklist shows "5 of 7 collected · 2 more to go!" style progress with an encouragement chip ("Almost there!"). The broader real-world document set (Pay Stubs, W-2 Forms, Loan Estimate, Closing Disclosure, Purchase Agreement, Promissory Note…) appears in the Learning Center (§4.1) rather than as extra checklist rows — clarity over completeness.
 
 **Player actions on a customer (4 buttons, fixed):**
-1. **Request Documents** — ask for missing papers (small happiness cost if repeated)
+1. **Request Documents** — ask for missing documents (small happiness cost if repeated)
 2. **Continue Processing** — move to next stage (only when requirements met)
 3. **Contact Customer** — send a friendly message (+happiness, +trust, small time cost)
 4. **Delay** — set aside for later (happiness decays while delayed)
@@ -125,16 +129,44 @@ Not every loan requires every document — Refinance skips some; Investment adds
 
 ---
 
+## 4.1 Mortgage Glossary & Learning Center (v2 system)
+
+**Goal:** every mortgage term in the UI is a tiny doorway to learning — real mortgage education through simple gameplay, never a training manual.
+
+**Glossary-linked terms.** Every mortgage-specific term in the UI renders **bold** with a small circular **ⓘ** info icon after it. Hover (desktop) or tap (mobile) opens a cozy tooltip containing:
+1. **Definition** — one beginner-friendly sentence or two.
+2. **Why it matters** — the purpose, in plain words.
+3. **Where you are** — the loan journey list (§3) with the term's stage highlighted.
+4. **Fun fact** *(optional)* — one short educational insight.
+
+Tooltip rules: consistent ⓘ everywhere, cozy style, smooth hover/tap animation, never blocks gameplay, closes on outside click or Escape, can be **pinned** open. Tooltip text size is adjustable (S/M/L, persisted locally). Keyboard: the ⓘ is a real focusable button; entries are reachable by Tab; ARIA labels throughout.
+
+**Mortgage Learning Center** — an in-game encyclopedia screen reached from the Dashboard sidebar. Four categories:
+- **Getting Started:** Buying a Home · Mortgage Basics · Common Loan Types
+- **Documents:** Loan Application · Pay Stubs · W-2 Forms · Tax Returns · Bank Statements · Loan Estimate · Closing Disclosure · plus the in-game checklist documents
+- **Loan Process:** Pre-Qualification · Processing · Appraisal · Title Review · Underwriting · Conditional Approval · Clear to Close · Closing · Funding · Loan Servicing
+- **Financial Concepts:** Down Payment · Interest Rate · Principal · Escrow · Debt-to-Income Ratio (DTI) · Loan-to-Value Ratio (LTV) · Closing Costs · Private Mortgage Insurance (PMI)
+
+Each entry: beginner-friendly explanation, why it matters, where it appears in the process, related topics (clickable).
+
+**Progressive learning.** Terms unlock a "seen in play" badge when they first appear in gameplay; opening a term (tooltip or Learning Center) marks it **Learned**. The Learning Center header shows completion % ("You've learned 12 of 33 terms"). All entries remain browsable — curiosity is never locked out.
+
+**Technical rule (TDD §6.1):** one centralized glossary data module (the MortgageGlossary service) is the only place term content lives — no duplicated definitions, localization-ready, easy to extend.
+
+**Balance rule:** authentic, but never overwhelming — no regulatory depth, no lender-specific edge cases, and never a wall of new terms at once.
+
+---
+
 ## 5. Employees
 
 **Roles (4 hireable at launch), mapped to pipeline stages:**
 
-| Role | Owns stages | Mockup salary range |
+| Role | Owns stages (v2 pipeline, §3) | Mockup salary range |
 |---|---|---|
-| Loan Officer | Lead, Application | $4,400–$5,800/mo |
-| Processor | Documents | $3,600–$4,100/mo |
-| Reviewer | Review, Approval | $4,700–$5,400/mo |
-| Closer | Closing, Completed | $4,200–$5,100/mo |
+| Loan Officer | Lead, Pre-Qualification, Application | $4,400–$5,800/mo |
+| Processor | Document Collection, Processing | $3,600–$4,100/mo |
+| Underwriter *(v1 "Reviewer")* | Underwriting | $4,700–$5,400/mo |
+| Closer | Clear to Close, Closing, Complete | $4,200–$5,100/mo |
 
 **Employee stats:** Skill (1–5 stars), Happiness (0–100%), Workload (0–100%), Monthly salary, loans in progress.
 
@@ -318,7 +350,7 @@ Day ends ──> End of Day Summary ──> Start Next Day ──> Dashboard (ne
 
 **Typography:** Headings — **Fraunces** (friendly serif, weight 700; scale 44/H1, 28/H2, 20/H3, 16/H4). Body — **Inter** (18/Lead, 14/Body, 11/Caption, 10/Label).
 
-**Voice & tone (hard rule):** "We write like a friendly coworker. Short sentences, no jargon. Say 'papers' instead of 'documents' and 'yes/no' instead of 'approval'. Encouraging, patient, curious. Celebrate small wins. When something goes wrong, offer a next step — never blame the player."
+**Voice & tone (hard rule, v2):** "We write like a friendly coworker who happens to know mortgages. Short sentences. Use the real term — then make it feel easy: every mortgage term is glossary-linked (§4.1), and surrounding copy stays warm and plain. Encouraging, patient, curious. Celebrate small wins. When something goes wrong, offer a next step — never blame the player. Never stack more than one new term in a single sentence."
 
 **Components:** rounded panels (radius scale 10 / 14 / 20 / 999 — never sharp corners), soft shadow `0 6px 20 #2E241714`, 1px sand borders, 2px warm focus ring.
 
@@ -340,6 +372,8 @@ Day ends ──> End of Day Summary ──> Start Next Day ──> Dashboard (ne
 4. **Gems economy tuning** — earn rates need playtest data; the no-real-money rule is final.
 5. **Save/Share on End-of-Day** — Save is core; Share (image export of the day card) is nice-to-have.
 6. **Audio** — no direction yet. Cozy lo-fi loop + soft UI sounds proposed; needs its own mini style guide.
+7. **v2 terminology pivot (July 2026, decided):** authentic mortgage terms + glossary replace the v1 "no jargon" rule. The Pencil mockups still show v1 labels ("Papers", "Yes/No", Reviewer) — mockups to be refreshed when convenient; this document wins meanwhile. The 17-step real workflow is compressed to 9 board columns with in-stage sub-steps (§3) per the "no excessive sub-steps in the main UI" rule.
+8. **Tutorial copy** (§11) still references v1 wording — rewrite with glossary-linked terms when the Tutorial ships (M8).
 
 ---
 

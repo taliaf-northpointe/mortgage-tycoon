@@ -1,30 +1,33 @@
 /**
- * Canonical data model — transcribed from TDD §3.
+ * Canonical data model — transcribed from TDD §3 (v2, terminology pivot).
  * These are the contract between engine, store, and UI.
  * Extend them only by updating docs/TECHNICAL_DESIGN_DOCUMENT.md first.
  */
 
 export type LoanStage =
   | 'lead'
+  | 'preQualification'
   | 'application'
-  | 'documents'
-  | 'review'
-  | 'approval'
+  | 'documentCollection'
+  | 'processing'
+  | 'underwriting'
+  | 'clearToClose'
   | 'closing'
   | 'completed';
 
-export type LoanType = 'firstHome' | 'homePurchase' | 'refinance' | 'investment';
+export type LoanProduct = 'conventional' | 'fha' | 'va';
+export type LoanPurpose = 'purchase' | 'refinance';
 
-export type Role = 'loanOfficer' | 'processor' | 'reviewer' | 'closer';
+export type Role = 'loanOfficer' | 'processor' | 'underwriter' | 'closer';
 
 export type DocumentKey =
-  | 'proofOfJob'
-  | 'moneyInBank'
-  | 'photoId'
-  | 'addressHistory'
-  | 'references'
-  | 'taxPapers'
-  | 'homeInspection';
+  | 'employmentVerification'
+  | 'bankStatements'
+  | 'governmentId'
+  | 'residenceHistory'
+  | 'creditAuthorization'
+  | 'taxReturns'
+  | 'homeInspectionReport';
 
 export type DocStatus = 'notRequired' | 'missing' | 'requested' | 'collected';
 
@@ -62,7 +65,8 @@ export interface Customer {
 export interface Loan {
   id: string; // "LN-2026-0001"
   customerId: string;
-  type: LoanType;
+  product: LoanProduct; // Conventional | FHA | VA (GDD §3 v2)
+  purpose: LoanPurpose; // Purchase | Refinance only (GDD §3 v2)
   amount: number;
   stage: LoanStage;
   daysInPipeline: number;
@@ -102,9 +106,16 @@ export interface DaySummary {
   starRating: 1 | 2 | 3 | 4 | 5;
 }
 
+/** Progressive learning state for one glossary term (GDD §4.1). */
+export interface GlossaryProgress {
+  unlocked: boolean; // term has appeared in gameplay UI
+  learned: boolean; // player opened its tooltip or Learning Center entry
+  learnedOnDay?: number;
+}
+
 export interface GameState {
   meta: {
-    saveVersion: 1;
+    saveVersion: 2;
     playerName: string;
     officeName: string;
     createdAt: string;
@@ -123,5 +134,6 @@ export interface GameState {
   eventLog: GameEvent[];
   achievements: Record<string, { earned: boolean; earnedOnDay?: number }>;
   dayHistory: DaySummary[];
+  glossary: Record<string, GlossaryProgress>;
   rngSeed: number;
 }

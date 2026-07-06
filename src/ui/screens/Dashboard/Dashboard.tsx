@@ -1,4 +1,5 @@
 import {
+  BookOpen,
   Briefcase,
   Coins,
   FolderKanban,
@@ -16,6 +17,7 @@ import {
 import { DAY_END_HOUR, titleForLevel, WEEKDAYS } from '../../../engine/constants';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
+import { GlossaryTerm } from '../../glossary/GlossaryTerm';
 import styles from './Dashboard.module.css';
 import { NotificationPanel } from './NotificationPanel';
 import { OfficeScene } from './OfficeScene';
@@ -25,7 +27,7 @@ type Speed = 0 | 1 | 2 | 3;
 interface DashboardProps {
   speed: Speed;
   onSpeedChange(speed: Speed): void;
-  onNavigate(screen: 'pipeline'): void;
+  onNavigate(screen: 'pipeline' | 'learning'): void;
   onExitToMenu(): void;
 }
 
@@ -60,6 +62,11 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
         />
         <NavItem icon={<Sparkles size={17} />} label="Upgrades" soon />
         <NavItem icon={<Map size={17} />} label="Map" soon />
+        <NavItem
+          icon={<BookOpen size={17} />}
+          label="Learning Center"
+          onClick={() => onNavigate('learning')}
+        />
         <NavItem icon={<Settings size={17} />} label="Settings" soon />
 
         <div className={styles.sidebarFooter}>
@@ -89,7 +96,11 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
           <Kpi icon={<Star size={15} />} label="Reputation" value={`${stats.reputation}/100`} />
           <Kpi icon={<Briefcase size={15} />} label="Active Loans" value={String(activeLoans)} />
           <Kpi icon={<Smile size={15} />} label="Happiness" value={`${happiness}%`} />
-          <Kpi icon={<Percent size={15} />} label="Interest" value={`${stats.interestRate.toFixed(1)}%`} />
+          <Kpi
+            icon={<Percent size={15} />}
+            label={<GlossaryTerm termKey="interestRate">Interest</GlossaryTerm>}
+            value={`${stats.interestRate.toFixed(1)}%`}
+          />
         </div>
 
         <div className={styles.speedControls}>
@@ -154,7 +165,7 @@ function NavItem({
   );
 }
 
-function Kpi({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
+function Kpi({ icon, label, value }: { icon: React.ReactNode; label: React.ReactNode; value: string }) {
   return (
     <div className={styles.kpi}>
       <span className={styles.kpiIcon}>{icon}</span>

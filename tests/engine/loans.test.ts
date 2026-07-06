@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { REQUIRED_DOCS_BY_LOAN_TYPE } from '../../src/engine/constants';
+import { REQUIRED_DOCS_BY_PURPOSE } from '../../src/engine/constants';
 import { initialDocuments, missingDocs, nextStage, requirementsMet } from '../../src/engine/loans';
 import { createStarterState, STARTER_LOAN_ID } from '../../src/engine/content/starter';
 import type { Loan } from '../../src/engine/types';
@@ -10,51 +10,53 @@ function starterLoan(): Loan {
   return loan;
 }
 
-describe('document checklists (GDD §4)', () => {
-  it('a first-home loan requires all seven papers', () => {
-    const docs = initialDocuments('firstHome');
+describe('loan documents checklists (GDD §4 v2)', () => {
+  it('a purchase loan requires all seven documents', () => {
+    const docs = initialDocuments('purchase');
     expect(Object.values(docs).filter((s) => s === 'missing')).toHaveLength(7);
   });
 
-  it('refinance skips some papers', () => {
+  it('refinance skips several documents', () => {
     const docs = initialDocuments('refinance');
-    expect(docs.addressHistory).toBe('notRequired');
-    expect(docs.references).toBe('notRequired');
-    expect(docs.homeInspection).toBe('notRequired');
-    expect(docs.proofOfJob).toBe('missing');
-    expect(REQUIRED_DOCS_BY_LOAN_TYPE.refinance.length).toBeLessThan(
-      REQUIRED_DOCS_BY_LOAN_TYPE.firstHome.length,
+    expect(docs.residenceHistory).toBe('notRequired');
+    expect(docs.homeInspectionReport).toBe('notRequired');
+    expect(docs.employmentVerification).toBe('missing');
+    expect(docs.creditAuthorization).toBe('missing');
+    expect(REQUIRED_DOCS_BY_PURPOSE.refinance.length).toBeLessThan(
+      REQUIRED_DOCS_BY_PURPOSE.purchase.length,
     );
   });
 });
 
 describe('stage requirements (TDD §4a)', () => {
-  it('the Papers stage blocks until every required paper is collected', () => {
+  it('Document Collection blocks until every required document is collected', () => {
     const loan = starterLoan();
-    loan.stage = 'documents';
+    loan.stage = 'documentCollection';
     expect(requirementsMet(loan)).toBe(false);
 
-    for (const key of REQUIRED_DOCS_BY_LOAN_TYPE.firstHome) {
+    for (const key of REQUIRED_DOCS_BY_PURPOSE.purchase) {
       loan.documents[key] = 'collected';
     }
     expect(missingDocs(loan)).toHaveLength(0);
     expect(requirementsMet(loan)).toBe(true);
   });
 
-  it('other stages have no paper requirement', () => {
+  it('other stages have no document requirement', () => {
     const loan = starterLoan();
-    loan.stage = 'review';
+    loan.stage = 'underwriting';
     expect(requirementsMet(loan)).toBe(true);
   });
 });
 
-describe('stage order (GDD §3)', () => {
-  it('walks lead → completed and stops', () => {
-    expect(nextStage('lead')).toBe('application');
-    expect(nextStage('application')).toBe('documents');
-    expect(nextStage('documents')).toBe('review');
-    expect(nextStage('review')).toBe('approval');
-    expect(nextStage('approval')).toBe('closing');
+describe('stage order (GDD §3 v2)', () => {
+  it('walks the nine-stage pipeline and stops', () => {
+    expect(nextStage('lead')).toBe('preQualification');
+    expect(nextStage('preQualification')).toBe('application');
+    expect(nextStage('application')).toBe('documentCollection');
+    expect(nextStage('documentCollection')).toBe('processing');
+    expect(nextStage('processing')).toBe('underwriting');
+    expect(nextStage('underwriting')).toBe('clearToClose');
+    expect(nextStage('clearToClose')).toBe('closing');
     expect(nextStage('closing')).toBe('completed');
     expect(nextStage('completed')).toBeNull();
   });

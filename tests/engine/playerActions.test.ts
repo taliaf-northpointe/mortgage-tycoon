@@ -2,7 +2,8 @@ import { describe, expect, it } from 'vitest';
 import {
   CLOSING_FEE_RATE,
   CONTACT_HAPPINESS_BOOST,
-  REQUIRED_DOCS_BY_LOAN_TYPE,
+  REQUIRED_DOCS_BY_PURPOSE,
+  STAGE_ORDER,
   STARTING_COINS,
 } from '../../src/engine/constants';
 import { createStarterState, STARTER_CUSTOMER_ID, STARTER_LOAN_ID } from '../../src/engine/content/starter';
@@ -17,28 +18,28 @@ function loanOf(state: GameState) {
 }
 
 describe('requestDocument', () => {
-  it('marks a missing paper as requested and logs an event', () => {
-    const s = requestDocument(createStarterState(), STARTER_LOAN_ID, 'taxPapers');
-    expect(loanOf(s).documents.taxPapers).toBe('requested');
+  it('marks a missing document as requested and logs an event', () => {
+    const s = requestDocument(createStarterState(), STARTER_LOAN_ID, 'taxReturns');
+    expect(loanOf(s).documents.taxReturns).toBe('requested');
     expect(s.eventLog.some((e) => e.category === 'customers')).toBe(true);
   });
 
-  it('returns the same state when the paper is not requestable', () => {
+  it('returns the same state when the document is not requestable', () => {
     const base = createStarterState();
     const collected = structuredClone(base);
     const loan = collected.loans[STARTER_LOAN_ID];
     if (!loan) throw new Error('missing loan');
-    loan.documents.taxPapers = 'collected';
-    expect(requestDocument(collected, STARTER_LOAN_ID, 'taxPapers')).toBe(collected);
-    expect(requestDocument(base, 'LN-nope', 'taxPapers')).toBe(base);
+    loan.documents.taxReturns = 'collected';
+    expect(requestDocument(collected, STARTER_LOAN_ID, 'taxReturns')).toBe(collected);
+    expect(requestDocument(base, 'LN-nope', 'taxReturns')).toBe(base);
   });
 
-  it('requested papers arrive before unrequested ones', () => {
+  it('requested documents arrive before unrequested ones', () => {
     let s = createStarterState();
-    while (loanOf(s).stage !== 'documents') s = advanceHour(s);
-    s = requestDocument(s, STARTER_LOAN_ID, 'homeInspection');
+    while (loanOf(s).stage !== 'documentCollection') s = advanceHour(s);
+    s = requestDocument(s, STARTER_LOAN_ID, 'homeInspectionReport');
     s = advanceHour(s);
-    expect(loanOf(s).documents.homeInspection).toBe('collected');
+    expect(loanOf(s).documents.homeInspectionReport).toBe('collected');
   });
 });
 
@@ -64,12 +65,12 @@ describe('contactCustomer', () => {
 describe('moveLoanForward', () => {
   it('advances a stage when requirements are met', () => {
     const s = moveLoanForward(createStarterState(), STARTER_LOAN_ID);
-    expect(loanOf(s).stage).toBe('application');
+    expect(loanOf(s).stage).toBe('preQualification');
   });
 
-  it('is blocked in Documents until every paper is in', () => {
+  it('is blocked in Document Collection until every document is in', () => {
     let s = createStarterState();
-    while (loanOf(s).stage !== 'documents') s = advanceHour(s);
+    while (loanOf(s).stage !== 'documentCollection') s = advanceHour(s);
 
     const blocked = moveLoanForward(s, STARTER_LOAN_ID);
     expect(blocked).toBe(s); // unchanged reference — action refused
@@ -77,16 +78,17 @@ describe('moveLoanForward', () => {
     const ready = structuredClone(s);
     const loan = ready.loans[STARTER_LOAN_ID];
     if (!loan) throw new Error('missing loan');
-    for (const key of REQUIRED_DOCS_BY_LOAN_TYPE.firstHome) loan.documents[key] = 'collected';
-    expect(loanOf(moveLoanForward(ready, STARTER_LOAN_ID)).stage).toBe('review');
+    for (const key of REQUIRED_DOCS_BY_PURPOSE.purchase) loan.documents[key] = 'collected';
+    expect(loanOf(moveLoanForward(ready, STARTER_LOAN_ID)).stage).toBe('processing');
   });
 
-  it('drives a loan all the way to Completed and pays the fee', () => {
+  it('drives a loan all the way to Complete and pays the fee', () => {
     let s = createStarterState();
     const loan = loanOf(s);
-    for (const key of REQUIRED_DOCS_BY_LOAN_TYPE.firstHome) loan.documents[key] = 'collected';
+    for (const key of REQUIRED_DOCS_BY_PURPOSE.purchase) loan.documents[key] = 'collected';
 
-    for (let i = 0; i < 6; i++) s = moveLoanForward(s, STARTER_LOAN_ID);
+    const transitions = STAGE_ORDER.length - 1;
+    for (let i = 0; i < transitions; i++) s = moveLoanForward(s, STARTER_LOAN_ID);
 
     expect(loanOf(s).stage).toBe('completed');
     expect(loanOf(s).statusTag).toBe('Closed');

@@ -1,20 +1,17 @@
-import { DOC_FRIENDLY_NAME, LOAN_TYPE_LABEL, STAGE_DISPLAY_NAME } from '../../../engine/constants';
-import { missingDocs, nextStage } from '../../../engine/loans';
-import type { Customer, DocStatus, DocumentKey, Loan } from '../../../engine/types';
+import {
+  DOC_DISPLAY_NAME,
+  DOC_FRIENDLY_SUBLABEL,
+  LOAN_PRODUCT_LABEL,
+  LOAN_PURPOSE_LABEL,
+  STAGE_DISPLAY_NAME,
+} from '../../../engine/constants';
+import { ALL_DOC_KEYS, missingDocs, nextStage } from '../../../engine/loans';
+import type { Customer, DocStatus, Loan } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
+import { GlossaryTerm } from '../../glossary/GlossaryTerm';
 import { moneyFull } from '../../format';
 import styles from './Pipeline.module.css';
-
-const DOC_ORDER: readonly DocumentKey[] = [
-  'proofOfJob',
-  'moneyInBank',
-  'photoId',
-  'addressHistory',
-  'references',
-  'taxPapers',
-  'homeInspection',
-];
 
 const DOC_STATUS_LABEL: Record<Exclude<DocStatus, 'notRequired'>, string> = {
   missing: 'Missing',
@@ -37,8 +34,8 @@ export function LoanDetailModal({
 
   const next = nextStage(loan.stage);
   const owed = missingDocs(loan).length;
-  const moveBlocked = loan.stage === 'documents' && owed > 0;
-  const requiredDocs = DOC_ORDER.filter((key) => loan.documents[key] !== 'notRequired');
+  const moveBlocked = loan.stage === 'documentCollection' && owed > 0;
+  const requiredDocs = ALL_DOC_KEYS.filter((key) => loan.documents[key] !== 'notRequired');
 
   return (
     <div className={styles.overlay} onClick={onClose} role="presentation">
@@ -52,7 +49,8 @@ export function LoanDetailModal({
           <div>
             <h3>{customer?.name ?? 'Customer'}</h3>
             <span className={styles.loanId}>
-              {loan.id} · {LOAN_TYPE_LABEL[loan.type]}
+              {loan.id} · <GlossaryTerm termKey="loanTypes">{LOAN_PRODUCT_LABEL[loan.product]}</GlossaryTerm> ·{' '}
+              {LOAN_PURPOSE_LABEL[loan.purpose]}
             </span>
           </div>
           <span className={styles.stageChipBig}>
@@ -70,19 +68,24 @@ export function LoanDetailModal({
             <dd>{loan.termYears} years</dd>
           </div>
           <div>
-            <dt>Rate</dt>
+            <dt>
+              <GlossaryTerm termKey="interestRate">Rate</GlossaryTerm>
+            </dt>
             <dd>{loan.rate.toFixed(1)}%</dd>
           </div>
         </dl>
 
-        <h4 className={styles.checklistTitle}>Papers</h4>
+        <h4 className={styles.checklistTitle}>Loan Documents</h4>
         <ul className={styles.checklist}>
           {requiredDocs.map((key) => {
             const status = loan.documents[key];
             if (status === 'notRequired') return null;
             return (
               <li key={key}>
-                <span>{DOC_FRIENDLY_NAME[key]}</span>
+                <span className={styles.docName}>
+                  <GlossaryTerm termKey={key}>{DOC_DISPLAY_NAME[key]}</GlossaryTerm>
+                  <small>{DOC_FRIENDLY_SUBLABEL[key]}</small>
+                </span>
                 <span className={styles[`doc_${status}`]}>{DOC_STATUS_LABEL[status]}</span>
                 {status === 'missing' && (
                   <Button onClick={() => requestDocument(loan.id, key)}>Request</Button>
@@ -100,7 +103,7 @@ export function LoanDetailModal({
               </Button>
               {moveBlocked && (
                 <span className={styles.blockedNote}>
-                  Waiting on {owed} more {owed === 1 ? 'paper' : 'papers'}
+                  Waiting on {owed} more {owed === 1 ? 'document' : 'documents'}
                 </span>
               )}
             </>

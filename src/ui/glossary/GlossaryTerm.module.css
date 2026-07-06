@@ -1,0 +1,140 @@
+.wrapper {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.infoButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  color: var(--color-sky);
+  background: color-mix(in srgb, var(--color-sky) 14%, var(--color-paper));
+  border: 1px solid color-mix(in srgb, var(--color-sky) 40%, var(--color-paper));
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition:
+    transform 120ms ease,
+    background 120ms ease;
+}
+
+.infoButton:hover {
+  transform: scale(1.15);
+  background: color-mix(in srgb, var(--color-sky) 26%, var(--color-paper));
+}
+
+.tooltip {
+  position: fixed;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 300px;
+  max-height: 340px;
+  overflow-y: auto;
+  text-align: left;
+  text-transform: none;
+  letter-spacing: normal;
+  font-weight: 400;
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 12px 14px;
+  animation: tooltipIn 140ms ease-out;
+  cursor: default;
+}
+
+@keyframes tooltipIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.tooltipHeader {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltipHeader strong {
+  flex: 1;
+  font-size: var(--glossary-font, 13px);
+  color: var(--color-ink);
+}
+
+.tooltipTool {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  color: var(--color-cocoa);
+  background: var(--color-cream);
+  border: var(--border-soft);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+}
+
+.tooltipTool[aria-pressed='true'] {
+  color: var(--color-paper);
+  background: var(--color-terracotta);
+}
+
+.tooltipLabel {
+  font-size: calc(var(--glossary-font, 13px) - 3px);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-terracotta);
+  margin-top: 2px;
+}
+
+.tooltipBody {
+  font-size: var(--glossary-font, 13px);
+  line-height: 1.45;
+  color: var(--color-ink);
+}
+
+.journey {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.journeyStep,
+.journeyHere {
+  font-size: calc(var(--glossary-font, 13px) - 2px);
+  color: var(--color-cocoa);
+  line-height: 1.4;
+}
+
+.journeyHere {
+  font-weight: 600;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-honey) 35%, var(--color-paper));
+  border-radius: var(--radius-sm);
+  padding: 1px 6px;
+  margin: 1px 0;
+}
+
+/* Adjustable text size (GDD §4.1 accessibility) */
+:global(:root[data-glossary-size='sm']) .tooltip {
+  --glossary-font: 11px;
+}
+
+:global(:root[data-glossary-size='lg']) .tooltip {
+  --glossary-font: 15px;
+  width: 340px;
+}
