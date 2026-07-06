@@ -213,7 +213,7 @@ interface DaySummary {
 ## 4. Simulation model
 
 - **Tick unit = 1 in-game hour**, 9 AM → 6 PM (10 ticks/day). `advanceHour()` progresses assigned loans, decays/boosts meters, and rolls the event table. `advanceDay()` runs 10 hours, computes the `DaySummary` (KPIs, star rating, badges), then pauses on the End-of-Day screen.
-- **Player pacing:** the day advances on a real-time timer (default ~6s per hour, pausable, 1×/2×/3× speed). All player actions (Request Documents, Contact, hiring, purchases) apply instantly between ticks.
+- **Player pacing:** the day advances on a real-time timer (10s per hour at 1× after playtest tuning — a full day ≈ 100s; pausable, 1×/2×/3× speed). All player actions (Request Documents, Contact, hiring, purchases) apply instantly between ticks.
 - **Determinism:** all randomness flows through the seeded RNG so that `advanceDay(state, seed)` is reproducible — this is what makes the engine unit-testable and balancing tweaks comparable.
 - **Stage advancement:** a loan advances when (a) its stage requirements are met (e.g. all required docs `collected` for documents→review), (b) an employee of the owning role has capacity, and (c) enough progress-hours have accumulated (skill and upgrades reduce hours needed).
 

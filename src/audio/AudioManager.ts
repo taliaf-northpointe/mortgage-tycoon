@@ -90,13 +90,16 @@ function resolveAssetPath(path: string): string {
 
 const DEFAULT_SETTINGS: AudioSettings = {
   masterVolume: 0.8,
-  musicVolume: 0.7,
+  musicVolume: 0.35, // playtest tuning: music sits gently under the game
   sfxVolume: 0.75,
   ambienceVolume: 0.45,
   muteMusic: false,
   muteSfx: false,
   muteAmbience: false,
 };
+
+/** Old default music volume — stored settings at this value follow the new default. */
+const LEGACY_MUSIC_VOLUME = 0.7;
 
 /**
  * Background music is a simple rotating playlist (Talia's three lo-fi
@@ -404,6 +407,8 @@ export class AudioManager {
     if (!raw) return { ...DEFAULT_SETTINGS };
     try {
       const parsed = JSON.parse(raw) as Partial<AudioSettings>;
+      // Players who never touched the old 70% default get the new 35%.
+      if (parsed.musicVolume === LEGACY_MUSIC_VOLUME) parsed.musicVolume = DEFAULT_SETTINGS.musicVolume;
       return { ...DEFAULT_SETTINGS, ...parsed };
     } catch {
       return { ...DEFAULT_SETTINGS };
