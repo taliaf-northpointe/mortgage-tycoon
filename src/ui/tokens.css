@@ -1,0 +1,93 @@
+/*
+ * Design tokens — transcribed exactly from GAME_DESIGN_DOCUMENT.md §12 (Style Guide).
+ * Components consume only var(--…) tokens; no hex codes in component files (TDD §6).
+ */
+:root {
+  /* Warm primaries */
+  --color-sunset: #e9a554;
+  --color-cream: #f5efe0;
+  --color-terracotta: #d96658;
+  --color-honey: #f5c842;
+
+  /* Cool accents */
+  --color-sky: #5eaae0;
+  --color-sage: #5fa574;
+  --color-lavender: #9b7edb;
+  --color-rose: #e86d93;
+
+  /* Neutrals — never pure black */
+  --color-ink: #2e2417;
+  --color-cocoa: #7a6d57;
+  --color-sand: #e7dfd0;
+  --color-paper: #ffffff;
+
+  /* Semantic */
+  --color-success: #5fa574;
+  --color-warning: #e9a554;
+  --color-danger: #d96658;
+  --color-info: #5eaae0;
+
+  /* Radius scale — never sharp corners */
+  --radius-sm: 10px;
+  --radius-md: 14px;
+  --radius-lg: 20px;
+  --radius-pill: 999px;
+
+  /* Elevation & borders */
+  --shadow-soft: 0 6px 20px #2e241714;
+  --border-soft: 1px solid var(--color-sand);
+  --focus-ring: 0 0 0 2px var(--color-sunset);
+
+  /* Typography */
+  --font-heading: 'Fraunces', Georgia, serif;
+  --font-body: 'Inter', system-ui, sans-serif;
+  --text-h1: 44px;
+  --text-h2: 28px;
+  --text-h3: 20px;
+  --text-h4: 16px;
+  --text-lead: 18px;
+  --text-body: 14px;
+  --text-caption: 11px;
+  --text-label: 10px;
+}
+
+/* Base */
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--font-heading);
+  font-weight: 700;
+  margin: 0;
+}
+
+h1 {
+  font-size: var(--text-h1);
+}
+h2 {
+  font-size: var(--text-h2);
+}
+h3 {
+  font-size: var(--text-h3);
+}
+h4 {
+  font-size: var(--text-h4);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
