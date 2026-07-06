@@ -8,11 +8,13 @@ import {
   CONTACT_HAPPINESS_BOOST,
   CONTACT_TIME_COST_HOURS,
   CONTACT_TRUST_BOOST,
+  CX_TRUST_BONUS_PER_TIER,
   DOC_DISPLAY_NAME,
   HAPPINESS_MAX,
   REQUEST_NAG_HAPPINESS_COST,
   TRUST_MAX,
 } from './constants';
+import { tiersOwned } from './upgrades';
 import { missingDocs, requirementsMet } from './loans';
 import { advanceLoanStage, missingDocsTag } from './tick';
 import type { DocumentKey, GameEvent, GameState } from './types';
@@ -102,7 +104,9 @@ export function contactCustomer(state: GameState, loanId: string): GameState {
   const c = s.customers[loan.customerId];
   if (!l || !c) return state;
   c.happiness = Math.min(HAPPINESS_MAX, c.happiness + CONTACT_HAPPINESS_BOOST);
-  c.trust = Math.min(TRUST_MAX, Math.round((c.trust + CONTACT_TRUST_BOOST) * 100) / 100);
+  // Customer Experience upgrades deepen every friendly chat (GDD §7).
+  const trustGain = CONTACT_TRUST_BOOST + CX_TRUST_BONUS_PER_TIER * tiersOwned(s, 'customerExperience');
+  c.trust = Math.min(TRUST_MAX, Math.round((c.trust + trustGain) * 100) / 100);
   l.progressHours = Math.max(0, l.progressHours - CONTACT_TIME_COST_HOURS); // the small time cost
 
   pushEvent(

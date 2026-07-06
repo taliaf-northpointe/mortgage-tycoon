@@ -21,11 +21,15 @@ import {
   SKILL_SPEED_STEP,
   STAR_HAPPINESS_MIN,
   STAR_SKILL_MIN,
+  TRAINING_CAP_BONUS_PER_TIER,
   TRAINING_COST,
+  TRAINING_GAIN_BONUS_PER_TIER,
   TRAINING_SKILL_GAIN,
   WORKLOAD_HEAVY,
   WORKLOAD_LIGHT,
 } from './constants';
+import { awardAchievement } from './economy';
+import { tiersOwned } from './upgrades';
 import type { Employee, GameEvent, GameState, Role } from './types';
 
 function pushEvent(state: GameState, category: GameEvent['category'], title: string, detail: string): void {
@@ -72,18 +76,19 @@ export function effectiveness(employee: Employee): number {
   return Math.max(0.2, skillFactor * overworkFactor);
 }
 
-export function skillCap(employee: Employee): number {
-  return Math.min(5, SKILL_CAP_BASE + employee.level);
+export function skillCap(employee: Employee, trainingTiers = 0): number {
+  return Math.min(5, SKILL_CAP_BASE + employee.level + trainingTiers * TRAINING_CAP_BONUS_PER_TIER);
 }
 
 /** Re-evaluate auto-applied tags (GDD §5). Mutates the cloned state. */
 export function updateEmployeeTags(state: GameState): void {
+  const trainingTiers = tiersOwned(state, 'training');
   for (const employee of Object.values(state.employees)) {
     if (employee.happiness < NEEDS_BREAK_HAPPINESS && employee.workload >= WORKLOAD_HEAVY) {
       employee.tag = 'needsBreak';
     } else if (employee.workload >= OVERWORKED_THRESHOLD) {
       employee.tag = 'overworked';
-    } else if (employee.skill >= skillCap(employee) && employee.level < EMPLOYEE_MAX_LEVEL) {
+    } else if (employee.skill >= skillCap(employee, trainingTiers) && employee.level < EMPLOYEE_MAX_LEVEL) {
       employee.tag = 'readyToPromote';
     } else if (employee.skill >= STAR_SKILL_MIN && employee.happiness >= STAR_HAPPINESS_MIN) {
       employee.tag = 'star';
@@ -93,9 +98,15 @@ export function updateEmployeeTags(state: GameState): void {
   }
 }
 
-/** Daily morale swing from workload (GDD §5). Mutates the cloned state. */
-export function applyDailyMorale(state: GameState): void {
+/**
+ * Daily morale swing from workload (GDD §5); a comfy office adds a bonus to
+ * everyone's day (GDD §7 Office upgrades). Mutates the cloned state.
+ */
+export function applyDailyMorale(state: GameState, officeBonus = 0): void {
   for (const employee of Object.values(state.employees)) {
+    if (officeBonus > 0) {
+      employee.happiness = Math.min(HAPPINESS_MAX, employee.happiness + officeBonus);
+    }
     if (employee.workload >= OVERWORKED_THRESHOLD) {
       employee.happiness = Math.max(0, employee.happiness - HAPPINESS_DECAY_OVERWORKED);
       if (employee.happiness < NEEDS_BREAK_HAPPINESS) {
@@ -117,18 +128,21 @@ export function applyDailyMorale(state: GameState): void {
 
 /* ── Player actions (pure: same-reference refusal) ─────────────────── */
 
-/** Train (GDD §5): spend coins → skill XP, up to the level's cap. */
+/** Train (GDD §5): spend coins → skill XP, up to the level's cap. Staff
+ * Training upgrades boost the gain and raise the cap (GDD §7). */
 export function trainEmployee(state: GameState, employeeId: string): GameState {
   const employee = state.employees[employeeId];
   if (!employee) return state;
   if (state.currencies.coins < TRAINING_COST) return state;
-  if (employee.skill >= skillCap(employee)) return state;
+  const trainingTiers = tiersOwned(state, 'training');
+  if (employee.skill >= skillCap(employee, trainingTiers)) return state;
 
   const s = structuredClone(state);
   const e = s.employees[employeeId];
   if (!e) return state;
   s.currencies.coins -= TRAINING_COST;
-  e.skill = Math.round(Math.min(skillCap(e), e.skill + TRAINING_SKILL_GAIN) * 100) / 100;
+  const gain = TRAINING_SKILL_GAIN * (1 + TRAINING_GAIN_BONUS_PER_TIER * trainingTiers);
+  e.skill = Math.round(Math.min(skillCap(e, trainingTiers), e.skill + gain) * 100) / 100;
   updateEmployeeTags(s);
   pushEvent(
     s,
@@ -143,7 +157,7 @@ export function trainEmployee(state: GameState, employeeId: string): GameState {
 export function promoteEmployee(state: GameState, employeeId: string): GameState {
   const employee = state.employees[employeeId];
   if (!employee || employee.level >= EMPLOYEE_MAX_LEVEL) return state;
-  if (employee.skill < skillCap(employee)) return state; // must be capped ("Ready to Promote")
+  if (employee.skill < skillCap(employee, tiersOwned(state, 'training'))) return state; // must be capped
 
   const s = structuredClone(state);
   const e = s.employees[employeeId];
@@ -194,6 +208,7 @@ export function hireEmployee(state: GameState, candidate: HireCandidate): GameSt
     `${candidate.name} joined the team!`,
     `Your new ${ROLE_DISPLAY_NAME[candidate.role]} is settling in at their desk.`,
   );
+  awardAchievement(s, 'teamBuilder'); // GDD §10
   return s;
 }
 

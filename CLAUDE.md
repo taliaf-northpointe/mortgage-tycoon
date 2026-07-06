@@ -29,7 +29,7 @@
 - [x] M4.5 — Terminology pivot: authentic mortgage terms, 9-stage workflow, glossary + Learning Center (GDD v2, save v2)
 - [x] M5 — Customer Profile (+ audio system groundwork: AudioManager, Settings screen; WAV assets still pending)
 - [x] M6 — Employees (+ game renamed to Mortgage Tycoon; + simple lead generation per GDD §13 decision 8)
-- [ ] M7 — Economy + Upgrades + End of Day
+- [x] M7 — Economy + Upgrades + End of Day (payroll charged, servicing, rate drift, XP/levels/badges, 25-upgrade tree, End-of-Day screen)
 - [ ] M8 — World Map + Tutorial + polish
 
 Update this checklist in the same commit that completes a milestone.

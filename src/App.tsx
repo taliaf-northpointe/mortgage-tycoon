@@ -6,6 +6,8 @@ import { AudioSettings } from './ui/screens/AudioSettings/AudioSettings';
 import { CustomerProfile } from './ui/screens/CustomerProfile/CustomerProfile';
 import { Dashboard } from './ui/screens/Dashboard/Dashboard';
 import { Employees } from './ui/screens/Employees/Employees';
+import { EndOfDay } from './ui/screens/EndOfDay/EndOfDay';
+import { Upgrades } from './ui/screens/Upgrades/Upgrades';
 import { LearningCenter } from './ui/screens/LearningCenter/LearningCenter';
 import { MainMenu } from './ui/screens/MainMenu/MainMenu';
 import { Pipeline } from './ui/screens/Pipeline/Pipeline';
@@ -31,6 +33,7 @@ export function App() {
   const [customerId, setCustomerId] = useState<string | null>(null);
   const hasGame = useGameStore((s) => s.game !== null);
   const game = useGameStore((s) => s.game);
+  const showEndOfDay = useGameStore((s) => s.showEndOfDay);
 
   useEffect(() => {
     audioManager.initialize();
@@ -59,10 +62,15 @@ export function App() {
   // The day clock (TDD §4) runs whenever a game is open, on any game screen.
   // Returning to the Main Menu pauses the world.
   useEffect(() => {
-    if (!hasGame || screen === 'mainMenu' || speed === 0) return;
+    if (!hasGame || screen === 'mainMenu' || speed === 0 || showEndOfDay) return;
     const id = window.setInterval(() => useGameStore.getState().tick(), REAL_MS_PER_HOUR / speed);
     return () => window.clearInterval(id);
-  }, [hasGame, screen, speed]);
+  }, [hasGame, screen, speed, showEndOfDay]);
+
+  // M7 — the world pauses on the End-of-Day summary (GDD §11 screen 8).
+  if (showEndOfDay && screen !== 'mainMenu' && hasGame) {
+    return <EndOfDay />;
+  }
 
   if (screen === 'mainMenu') {
     return <MainMenu onEnterGame={() => setScreen('dashboard')} onOpenSettings={() => setScreen('audioSettings')} />;
@@ -83,6 +91,9 @@ export function App() {
   }
   if (screen === 'employees') {
     return <Employees onBack={() => setScreen('dashboard')} />;
+  }
+  if (screen === 'upgrades') {
+    return <Upgrades onBack={() => setScreen('dashboard')} />;
   }
   if (screen === 'audioSettings') {
     return <AudioSettings onBack={() => setScreen(hasGame ? 'dashboard' : 'mainMenu')} />;

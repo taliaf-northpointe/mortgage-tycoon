@@ -5,26 +5,42 @@
  */
 import {
   CLOSING_FEE_RATE,
+  CX_HAPPINESS_BONUS_PER_2_TIERS,
   DAY_END_HOUR,
   DAY_START_HOUR,
   DAYS_PER_SEASON,
   DELAYED_HAPPINESS_DECAY_PER_DAY,
   DOC_DISPLAY_NAME,
+  GEMS_FIVE_STAR_DAY,
   HAPPINESS_MAX,
+  HAPPY_CUSTOMER_MIN,
+  OFFICE_MORALE_BONUS_PER_2_TIERS,
   PROCESSING_APPRAISAL_HOURS,
+  RAINMAKER_REVENUE,
+  REPUTATION_PER_COMPLETION,
   REQUESTED_DOC_HOURS,
   REQUESTED_DOC_HOURS_PROMPT,
+  RESEARCH_FIRST_PRODUCT,
   ROLE_BY_STAGE,
   SEASONS,
   STAGE_ADVANCE_HAPPINESS_BOOST,
   STAGE_DISPLAY_NAME,
   STAGE_HOURS_REQUIRED,
   STAR_RATING_BASE,
+  TECH_SPEED_BONUS_PER_TIER,
   UNPROMPTED_DOC_HOURS,
   UNPROMPTED_DOC_HOURS_EAGER,
   XP_PER_COMPLETED_LOAN,
 } from './constants';
 import { maybeSpawnLead } from './content/leads';
+import {
+  awardAchievement,
+  chargePayroll,
+  checkDealStreak,
+  checkLevelUp,
+  creditServicing,
+  driftInterestRate,
+} from './economy';
 import {
   applyDailyMorale,
   deriveWorkloads,
@@ -33,6 +49,7 @@ import {
   updateEmployeeTags,
 } from './employees';
 import { missingDocs, nextStage, requirementsMet } from './loans';
+import { tiersOwned } from './upgrades';
 import type { Customer, DaySummary, GameEvent, GameState, Loan, Role } from './types';
 
 function findEmployeeIdForRole(state: GameState, role: Role): string | null {
@@ -67,9 +84,15 @@ export function advanceLoanStage(state: GameState, loan: Loan): void {
   const customer = state.customers[loan.customerId];
   const customerName = customer ? customer.name : 'A customer';
 
-  // GDD §4 — happiness rises with successful stages.
+  // GDD §4 — happiness rises with successful stages (Customer Experience
+  // upgrades sweeten it, GDD §7).
   if (customer) {
-    customer.happiness = Math.min(HAPPINESS_MAX, customer.happiness + STAGE_ADVANCE_HAPPINESS_BOOST);
+    const cxBonus =
+      Math.floor(tiersOwned(state, 'customerExperience') / 2) * CX_HAPPINESS_BONUS_PER_2_TIERS;
+    customer.happiness = Math.min(
+      HAPPINESS_MAX,
+      customer.happiness + STAGE_ADVANCE_HAPPINESS_BOOST + cxBonus,
+    );
   }
 
   if (to === 'completed') {
@@ -83,6 +106,25 @@ export function advanceLoanStage(state: GameState, loan: Loan): void {
       `🎉 ${customerName} got the keys!`,
       `The loan funded and ${customer ? customer.dreamHome.name : 'their new home'} is officially theirs. +$${fee.toLocaleString('en-US')}`,
     );
+
+    // GDD §8 — Research for the first completion of each loan product.
+    const priorOfProduct = Object.values(state.loans).some(
+      (l) => l.id !== loan.id && l.stage === 'completed' && l.product === loan.product,
+    );
+    if (!priorOfProduct) {
+      state.currencies.research += RESEARCH_FIRST_PRODUCT;
+      pushEvent(
+        state,
+        'loans',
+        'New expertise unlocked!',
+        `First ${loan.product.toUpperCase()} loan closed — +${RESEARCH_FIRST_PRODUCT} research.`,
+      );
+    }
+
+    // GDD §10 — badges & levels.
+    if (customer && customer.happiness >= HAPPY_CUSTOMER_MIN) awardAchievement(state, 'happyCustomer');
+    checkDealStreak(state);
+    checkLevelUp(state);
     return;
   }
 
@@ -183,10 +225,13 @@ function workLoan(state: GameState, loan: Loan): void {
   }
 
   // TDD §4c — accumulate progress-hours toward the current stage, scaled by
-  // the assigned employee's effectiveness (skill helps; overwork hurts, GDD §5).
+  // the assigned employee's effectiveness (skill helps; overwork hurts, GDD §5)
+  // and the Technology upgrade speed bonus (GDD §7).
   const worker = state.employees[loan.assignedEmployeeId];
+  const techBoost = 1 + TECH_SPEED_BONUS_PER_TIER * tiersOwned(state, 'technology');
   const hoursBefore = loan.progressHours;
-  loan.progressHours = Math.round((loan.progressHours + (worker ? effectiveness(worker) : 1)) * 100) / 100;
+  loan.progressHours =
+    Math.round((loan.progressHours + (worker ? effectiveness(worker) : 1) * techBoost) * 100) / 100;
 
   // Processing sub-steps (GDD §3 v2): Appraisal, then Title Review.
   if (
@@ -213,9 +258,16 @@ function workLoan(state: GameState, loan: Loan): void {
 export function advanceHour(state: GameState): GameState {
   const s = structuredClone(state);
   deriveWorkloads(s); // workload reflects assignments before anyone works (GDD §5)
+  const coinsBefore = s.currencies.coins;
   for (const loan of Object.values(s.loans)) {
     if (loan.stage === 'completed') continue;
     workLoan(s, loan);
+  }
+  // M7 — track income per hour for the End-of-Day chart.
+  const earned = s.currencies.coins - coinsBefore;
+  const hourIndex = Math.min(9, Math.max(0, s.clock.hour - DAY_START_HOUR));
+  if (earned > 0 && s.todayRevenueByHour[hourIndex] !== undefined) {
+    s.todayRevenueByHour[hourIndex] += earned;
   }
   deriveWorkloads(s);
   updateEmployeeTags(s);
@@ -233,21 +285,58 @@ export function advanceDay(state: GameState): GameState {
   const coinsAtStart = s.currencies.coins;
   const xpAtStart = s.stats.xp;
   const completedAtStart = Object.values(s.loans).filter((l) => l.stage === 'completed').length;
+  const badgesAtStart = new Set(
+    Object.entries(s.achievements)
+      .filter(([, a]) => a.earned)
+      .map(([id]) => id),
+  );
 
   while (s.clock.hour <= DAY_END_HOUR) {
     s = advanceHour(s);
   }
 
+  // ── M7 evening economy (GDD §8) ──
+  const servicingIncome = creditServicing(s);
+  const grossRevenue = s.currencies.coins - coinsAtStart;
+  const payroll = chargePayroll(s);
+  if (payroll > 0) {
+    pushEvent(
+      s,
+      'alerts',
+      `Payroll: −$${payroll.toLocaleString('en-US')}`,
+      "The team's daily share of salaries, paid with thanks.",
+    );
+  }
+  if (grossRevenue >= RAINMAKER_REVENUE) awardAchievement(s, 'rainmaker');
+
   const loansCompleted =
     Object.values(s.loans).filter((l) => l.stage === 'completed').length - completedAtStart;
+  s.stats.reputation = Math.min(100, s.stats.reputation + loansCompleted * REPUTATION_PER_COMPLETION);
+
   const starRating = Math.min(5, Math.max(1, STAR_RATING_BASE + loansCompleted)) as DaySummary['starRating'];
+  if (starRating === 5) {
+    s.currencies.gems += GEMS_FIVE_STAR_DAY;
+    s.stats.reputation = Math.min(100, s.stats.reputation + 1);
+  }
+  checkLevelUp(s);
+
+  const badgesEarned = Object.entries(s.achievements)
+    .filter(([id, a]) => a.earned && !badgesAtStart.has(id))
+    .map(([id]) => id);
+
   s.dayHistory.push({
     day: s.clock.day,
     loansCompleted,
-    revenue: s.currencies.coins - coinsAtStart,
+    revenue: grossRevenue,
+    payroll,
+    servicingIncome,
     xpEarned: s.stats.xp - xpAtStart,
     starRating,
+    revenueByHour: [...s.todayRevenueByHour],
+    badgesEarned,
+    highlights: s.eventLog.slice(0, 6).map((e) => ({ title: e.title, detail: e.detail })),
   });
+  s.todayRevenueByHour = Array.from({ length: 10 }, () => 0);
 
   for (const loan of Object.values(s.loans)) {
     if (loan.stage !== 'completed') loan.daysInPipeline += 1;
@@ -276,8 +365,14 @@ export function advanceDay(state: GameState): GameState {
     }
   }
 
-  // GDD §5 — workload wears on (or restores) the team overnight.
-  applyDailyMorale(s);
+  // GDD §8 — the ambient economy drifts overnight.
+  driftInterestRate(s);
+
+  // GDD §5 — workload wears on (or restores) the team overnight; a cozy
+  // office (GDD §7) softens the grind.
+  const officeBonus =
+    Math.floor(tiersOwned(s, 'office') / 2) * OFFICE_MORALE_BONUS_PER_2_TIERS;
+  applyDailyMorale(s, officeBonus);
 
   // GDD §2 — more customers arrive (seeded, capped; GDD §13 decision 8).
   maybeSpawnLead(s);

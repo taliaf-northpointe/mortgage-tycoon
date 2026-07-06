@@ -242,9 +242,58 @@ export const SALARY_RANGE_BY_ROLE: Record<Role, { min: number; max: number }> = 
   closer: { min: 4_200, max: 5_100 },
 };
 
-/** GDD §2/§4 (M6) — simple daily lead generation until M7 events */
-export const LEAD_SPAWN_CHANCE = 0.6; // per morning
+/** GDD §2/§4 (M6) — simple daily lead generation until M8 events */
+export const LEAD_SPAWN_CHANCE = 0.6; // per morning, before modifiers
 export const MAX_ACTIVE_LOANS = 6;
+
+/* ── M7: Economy (GDD §8) ─────────────────────────────────────────── */
+
+/** Payroll is charged daily at 1/30 of monthly salaries */
+export const PAYROLL_DAYS_PER_MONTH = 30;
+
+/** GDD §13 decision 12 — servicing trickle: full monthly payment per Complete loan, every 28 days */
+export const SERVICING_INTERVAL_DAYS = 28;
+
+/** GDD §8 — global interest rate drifts daily within cozy bounds */
+export const INTEREST_DRIFT_MAX = 0.15; // max ± per day
+export const INTEREST_RATE_MIN = 4.5;
+export const INTEREST_RATE_MAX = 8.5;
+/** low rates bring more leads (and vice versa): chance += (baseline − rate) × this */
+export const RATE_LEAD_SENSITIVITY = 0.04;
+export const LEAD_CHANCE_MIN = 0.25;
+export const LEAD_CHANCE_MAX = 0.9;
+
+/** GDD §8/§10 — reputation & reward tuning */
+export const REPUTATION_PER_COMPLETION = 1;
+export const GEMS_PER_LEVEL_UP = 2;
+export const GEMS_PER_BADGE = 1;
+export const XP_PER_BADGE = 100;
+export const GEMS_FIVE_STAR_DAY = 1;
+export const RESEARCH_FIRST_PRODUCT = 5; // first Conventional/FHA/VA completion each
+
+/** GDD §10 — XP needed to REACH each level (index = level); titles in LEVEL_TITLES */
+export const LEVEL_XP_THRESHOLDS: readonly number[] = [0, 0, 200, 500, 900, 1_500, 2_500];
+export const MAX_PLAYER_LEVEL = 6;
+
+/** GDD §10 — achievement triggers */
+export const RAINMAKER_REVENUE = 50_000; // in one day
+export const DEAL_STREAK_COUNT = 3; // closings in one hour
+export const HAPPY_CUSTOMER_MIN = 95; // happiness at closing
+
+/* ── M7: Upgrades (GDD §7) ────────────────────────────────────────── */
+
+export const UPGRADES_SCREEN_LEVEL = 3; // Branch Manager unlocks the screen (GDD §10)
+export const UPGRADES_TIER45_LEVEL = 5; // Regional Director unlocks Tiers 4–5
+
+/** Effect rates per purchased tier in each category (GDD §7 effect mapping) */
+export const TRAINING_GAIN_BONUS_PER_TIER = 0.2; // training sessions teach 20% more per tier
+export const TRAINING_CAP_BONUS_PER_TIER = 0.1; // skill cap headroom
+export const TECH_SPEED_BONUS_PER_TIER = 0.05; // stage processing speed
+export const MARKETING_LEAD_BONUS_PER_TIER = 0.05; // lead chance
+export const MARKETING_REPUTATION_PER_PURCHASE = 2; // instant on purchase
+export const CX_TRUST_BONUS_PER_TIER = 0.05; // extra trust per Contact
+export const CX_HAPPINESS_BONUS_PER_2_TIERS = 1; // extra happiness per stage advance
+export const OFFICE_MORALE_BONUS_PER_2_TIERS = 1; // extra daily employee recovery
 
 /** New-game starting values (GDD §8 HUD examples; coins are a tunable) */
 export const STARTING_COINS = 12_000;

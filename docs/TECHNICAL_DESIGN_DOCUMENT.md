@@ -157,7 +157,7 @@ interface Employee {
 }
 
 interface GameState {
-  meta: { saveVersion: 4; playerName: string; officeName: string; createdAt: string };
+  meta: { saveVersion: 5; playerName: string; officeName: string; createdAt: string };
   clock: { day: number; season: 'spring'|'summer'|'fall'|'winter'; weekday: number; hour: number };
   currencies: { coins: number; gems: number; research: number };
   stats: { reputation: number; interestRate: number; xp: number; level: number };
@@ -170,6 +170,7 @@ interface GameState {
   eventLog: GameEvent[];             // today's events; archived on day end
   achievements: Record<string, { earned: boolean; earnedOnDay?: number }>;
   dayHistory: DaySummary[];          // feeds End-of-Day deltas & charts
+  todayRevenueByHour: number[];      // 10 running totals for the current day (M7); reset at rollover
   glossary: Record<string, { unlocked: boolean; learned: boolean; learnedOnDay?: number }>;
                                      // progressive learning state (GDD §4.1); keys from the glossary module
   rngSeed: number;
@@ -191,9 +192,14 @@ interface GameEvent {
 interface DaySummary {
   day: number;
   loansCompleted: number;
-  revenue: number;                   // coins earned during the day
+  revenue: number;                   // gross coins earned during the day (fees + servicing)
+  payroll: number;                   // charged at day end (M7)
+  servicingIncome: number;           // monthly trickle credited this day, if any (M7)
   xpEarned: number;
-  starRating: 1 | 2 | 3 | 4 | 5;     // simple formula in M1; refined in M7 (GDD §10)
+  starRating: 1 | 2 | 3 | 4 | 5;
+  revenueByHour: number[];           // 10 entries, 9 AM → 6 PM — feeds the End-of-Day chart (M7)
+  badgesEarned: string[];            // achievement ids earned during the day (M7)
+  highlights: { title: string; detail: string }[]; // up to 6 feed events (M7)
 }
 ```
 
@@ -218,6 +224,7 @@ interface DaySummary {
 - **v1 → v2** (terminology pivot): renames document keys, maps old stages (`documents`→`documentCollection`, `review`→`processing`, `approval`→`underwriting`), splits `Loan.type` into `product`+`purpose` (`firstHome`→FHA·Purchase, `homePurchase`→Conventional·Purchase, `refinance`→Conventional·Refinance, `investment`→Conventional·Purchase), renames the `reviewer` role to `underwriter`, and adds the empty `glossary` map.
 - **v2 → v3** (M5 Customer Profile): adds `Loan.delayed = false` and `Customer.happinessAtWeekStart = happiness`.
 - **v3 → v4** (M6 Employees): adds `Employee.level = 1`.
+- **v4 → v5** (M7 Economy): adds `todayRevenueByHour` (zeros), populates the `upgrades` map (tier 1 available, rest locked), and backfills the extended `DaySummary` fields on existing history.
 
 ## 6.1 MortgageGlossary service (v2, GDD §4.1)
 

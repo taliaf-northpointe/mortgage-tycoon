@@ -28,7 +28,7 @@ type Speed = 0 | 1 | 2 | 3;
 interface DashboardProps {
   speed: Speed;
   onSpeedChange(speed: Speed): void;
-  onNavigate(screen: 'pipeline' | 'learning' | 'employees' | 'audioSettings'): void;
+  onNavigate(screen: 'pipeline' | 'learning' | 'employees' | 'upgrades' | 'audioSettings'): void;
   onExitToMenu(): void;
 }
 
@@ -72,7 +72,14 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
             onNavigate('pipeline');
           }}
         />
-        <NavItem icon={<Sparkles size={17} />} label="Upgrades" soon />
+        <NavItem
+          icon={<Sparkles size={17} />}
+          label="Upgrades"
+          onClick={() => {
+            audioManager.playCue('menuNavigation');
+            onNavigate('upgrades');
+          }}
+        />
         <NavItem icon={<Map size={17} />} label="Map" soon />
         <NavItem
           icon={<BookOpen size={17} />}

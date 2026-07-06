@@ -9,6 +9,7 @@ import {
   STARTING_REPUTATION,
 } from '../constants';
 import { initialDocuments } from '../loans';
+import { initialUpgradeStates } from '../upgrades';
 import type { GameState } from '../types';
 
 export const STARTER_LOAN_ID = 'LN-2026-0001';
@@ -17,7 +18,7 @@ export const STARTER_CUSTOMER_ID = 'cust-sarah-chen';
 export function createStarterState(rngSeed = 42): GameState {
   return {
     meta: {
-      saveVersion: 4,
+      saveVersion: 5,
       playerName: 'You',
       officeName: 'Old Town Office',
       // Fixed for determinism; the real New Game flow (M2) stamps the actual date.
@@ -114,7 +115,7 @@ export function createStarterState(rngSeed = 42): GameState {
         tag: null,
       },
     },
-    upgrades: {},
+    upgrades: initialUpgradeStates(),
     neighborhoods: {
       oldTown: { status: 'mainOffice', demand: 'high', leads: 3 },
       sunnyHeights: { status: 'available', demand: 'high', leads: 8 },
@@ -126,6 +127,7 @@ export function createStarterState(rngSeed = 42): GameState {
     eventLog: [],
     achievements: {},
     dayHistory: [],
+    todayRevenueByHour: Array.from({ length: 10 }, () => 0),
     glossary: {},
     rngSeed,
   };

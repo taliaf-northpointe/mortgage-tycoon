@@ -101,12 +101,18 @@ describe('acceptance: a loan travels the full v2 pipeline deterministically', ()
     expect(loan.statusTag).toBe('Closed');
 
     const fee = Math.round(loan.amount * CLOSING_FEE_RATE);
-    expect(s.currencies.coins).toBe(STARTING_COINS + fee);
-    expect(s.stats.xp).toBe(XP_PER_COMPLETED_LOAN);
+    expect(s.stats.xp).toBeGreaterThanOrEqual(XP_PER_COMPLETED_LOAN);
 
-    const completedDay = s.dayHistory.find((d) => d.loansCompleted === 1);
+    // M7 accounting identity: coins = start + all revenue − all payroll.
+    const totalRevenue = s.dayHistory.reduce((sum, d) => sum + d.revenue, 0);
+    const totalPayroll = s.dayHistory.reduce((sum, d) => sum + d.payroll, 0);
+    expect(totalRevenue).toBeGreaterThanOrEqual(fee);
+    expect(totalPayroll).toBeGreaterThan(0); // money pressure is real
+    expect(s.currencies.coins).toBe(STARTING_COINS + totalRevenue - totalPayroll);
+
+    const completedDay = s.dayHistory.find((d) => d.loansCompleted >= 1);
     expect(completedDay).toBeDefined();
-    expect(completedDay?.revenue).toBe(fee);
+    expect(completedDay?.revenue).toBeGreaterThanOrEqual(fee);
   });
 
   it('two runs from the same starting state end in identical states', () => {

@@ -12,6 +12,7 @@ import {
   trainEmployee,
 } from '../engine/employees';
 import type { HireCandidate } from '../engine/employees';
+import { purchaseUpgrade } from '../engine/upgrades';
 import {
   contactCustomer,
   moveLoanForward,
@@ -25,6 +26,8 @@ import { loadGame, saveGame, serializeSave } from './saveSystem';
 
 interface GameStore {
   game: GameState | null;
+  /** M7 — true right after the day rolls over; the UI shows End of Day and the clock pauses. */
+  showEndOfDay: boolean;
   /** Create a fresh game with the player's chosen names, and autosave it. */
   newGame(playerName: string, officeName: string): void;
   /** Load the autosave. Returns false if there is none (or it's unreadable). */
@@ -52,10 +55,14 @@ interface GameStore {
   promoteEmployee(employeeId: string): void;
   hireEmployee(candidate: HireCandidate): void;
   rebalanceLoans(): void;
+  /** GDD §7/§11 (M7) */
+  purchaseUpgrade(upgradeId: string): void;
+  startNextDay(): void;
 }
 
 export const useGameStore = create<GameStore>((set, get) => ({
   game: null,
+  showEndOfDay: false,
 
   newGame(playerName, officeName) {
     const state = createStarterState((Date.now() ^ (Math.random() * 0xffffffff)) >>> 0);
@@ -89,7 +96,24 @@ export const useGameStore = create<GameStore>((set, get) => ({
   tick() {
     const { game } = get();
     if (!game) return;
-    set({ game: game.clock.hour > DAY_END_HOUR ? advanceDay(game) : advanceHour(game) });
+    if (game.clock.hour > DAY_END_HOUR) {
+      // The day is over: roll the calendar and pause on the End-of-Day
+      // summary (GDD §11 screen 8).
+      set({ game: advanceDay(game), showEndOfDay: true });
+    } else {
+      set({ game: advanceHour(game) });
+    }
+  },
+
+  startNextDay() {
+    set({ showEndOfDay: false });
+  },
+
+  purchaseUpgrade(upgradeId) {
+    const { game } = get();
+    if (!game) return;
+    const next = purchaseUpgrade(game, upgradeId);
+    if (next !== game) set({ game: next });
   },
 
   requestDocument(loanId, key) {

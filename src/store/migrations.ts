@@ -4,7 +4,9 @@
  * FROM; each migration returns data at saveVersion + 1.
  */
 
-export const CURRENT_SAVE_VERSION = 4;
+import { initialUpgradeStates } from '../engine/upgrades';
+
+export const CURRENT_SAVE_VERSION = 5;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -103,10 +105,37 @@ function migrateV3toV4(data: Record<string, unknown>): Record<string, unknown> {
   return next;
 }
 
+/** v4 → v5 (M7 Economy): hourly revenue tracking, populated upgrades, extended DaySummary. */
+function migrateV4toV5(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+
+  next['todayRevenueByHour'] = next['todayRevenueByHour'] ?? Array.from({ length: 10 }, () => 0);
+
+  const upgrades = (next['upgrades'] ?? {}) as Record<string, string>;
+  if (Object.keys(upgrades).length === 0) {
+    next['upgrades'] = initialUpgradeStates();
+  }
+
+  const history = (next['dayHistory'] ?? []) as Record<string, unknown>[];
+  for (const day of history) {
+    day['payroll'] = day['payroll'] ?? 0;
+    day['servicingIncome'] = day['servicingIncome'] ?? 0;
+    day['revenueByHour'] = day['revenueByHour'] ?? Array.from({ length: 10 }, () => 0);
+    day['badgesEarned'] = day['badgesEarned'] ?? [];
+    day['highlights'] = day['highlights'] ?? [];
+  }
+
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['saveVersion'] = 5;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
   2: migrateV2toV3,
   3: migrateV3toV4,
+  4: migrateV4toV5,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

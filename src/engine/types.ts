@@ -104,9 +104,14 @@ export interface GameEvent {
 export interface DaySummary {
   day: number;
   loansCompleted: number;
-  revenue: number;
+  revenue: number; // gross coins earned during the day (fees + servicing)
+  payroll: number; // charged at day end (M7)
+  servicingIncome: number; // monthly trickle credited this day, if any (M7)
   xpEarned: number;
   starRating: 1 | 2 | 3 | 4 | 5;
+  revenueByHour: number[]; // 10 entries, 9 AM → 6 PM (M7 End-of-Day chart)
+  badgesEarned: string[]; // achievement ids earned during the day (M7)
+  highlights: { title: string; detail: string }[]; // up to 6 feed events (M7)
 }
 
 /** Progressive learning state for one glossary term (GDD §4.1). */
@@ -118,7 +123,7 @@ export interface GlossaryProgress {
 
 export interface GameState {
   meta: {
-    saveVersion: 4;
+    saveVersion: 5;
     playerName: string;
     officeName: string;
     createdAt: string;
@@ -137,6 +142,7 @@ export interface GameState {
   eventLog: GameEvent[];
   achievements: Record<string, { earned: boolean; earnedOnDay?: number }>;
   dayHistory: DaySummary[];
+  todayRevenueByHour: number[]; // 10 running totals for the current day (M7); reset at rollover
   glossary: Record<string, GlossaryProgress>;
   rngSeed: number;
 }

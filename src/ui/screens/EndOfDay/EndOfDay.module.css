@@ -1,0 +1,256 @@
+.screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(
+    to bottom,
+    var(--color-cream) 0%,
+    color-mix(in srgb, var(--color-lavender) 12%, var(--color-cream)) 100%
+  );
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: min(760px, 100%);
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 32px 40px;
+  max-height: 92vh;
+  overflow-y: auto;
+}
+
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.dayChip {
+  font-size: var(--text-label);
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  color: var(--color-cocoa);
+  background: var(--color-sand);
+  border-radius: var(--radius-pill);
+  padding: 5px 12px;
+}
+
+.stars {
+  display: flex;
+  gap: 4px;
+}
+
+.star {
+  color: var(--color-sand);
+}
+
+.starOn {
+  color: var(--color-honey);
+}
+
+/* ── KPIs ───────────────────────────────────────────── */
+
+.kpis {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+.kpi {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--color-cream);
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
+}
+
+.kpiIcon {
+  color: var(--color-terracotta);
+}
+
+.kpiLabel {
+  font-size: var(--text-label);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--color-cocoa);
+}
+
+.kpiValue {
+  font-family: var(--font-heading);
+  font-size: var(--text-h3);
+  color: var(--color-ink);
+}
+
+.deltaUp,
+.deltaDown {
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-success);
+}
+
+.deltaDown {
+  color: var(--color-danger);
+}
+
+.kpiNote {
+  font-size: var(--text-label);
+  color: var(--color-cocoa);
+}
+
+/* ── Chart ──────────────────────────────────────────── */
+
+.chartSection h4,
+.columns h4 {
+  color: var(--color-terracotta);
+  margin-bottom: 8px;
+}
+
+.chart {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  height: 120px;
+  background: var(--color-cream);
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 12px 14px 6px;
+}
+
+.hourGroup {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  height: 100%;
+}
+
+.bars {
+  flex: 1;
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  width: 100%;
+  justify-content: center;
+}
+
+.barToday,
+.barYesterday {
+  width: 12px;
+  min-height: 2px;
+  border-radius: 4px 4px 0 0;
+}
+
+.barToday {
+  background: var(--color-sunset);
+}
+
+.barYesterday {
+  background: var(--color-sand);
+}
+
+.hourLabel {
+  font-size: var(--text-label);
+  color: var(--color-cocoa);
+}
+
+/* ── Columns ────────────────────────────────────────── */
+
+.columns {
+  display: grid;
+  grid-template-columns: 1.4fr 1fr;
+  gap: 20px;
+}
+
+.highlights {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.highlights li {
+  display: flex;
+  flex-direction: column;
+  background: var(--color-cream);
+  border: var(--border-soft);
+  border-radius: var(--radius-sm);
+  padding: 8px 12px;
+}
+
+.highlights strong {
+  font-size: var(--text-caption);
+  color: var(--color-ink);
+}
+
+.highlights span {
+  font-size: var(--text-label);
+  color: var(--color-cocoa);
+}
+
+.quiet {
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+  margin: 0;
+}
+
+.badges {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.badge {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-caption);
+  font-weight: 600;
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-honey) 30%, var(--color-paper));
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  padding: 10px 14px;
+}
+
+.newRibbon {
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-paper);
+  background: var(--color-terracotta);
+  border-radius: var(--radius-pill);
+  padding: 2px 7px;
+}
+
+.upNextTitle {
+  margin-top: 14px;
+}
+
+/* ── Actions ────────────────────────────────────────── */
+
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+.savedNote {
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+}

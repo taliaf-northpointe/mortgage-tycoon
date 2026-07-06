@@ -4,13 +4,19 @@
  * Deterministic: all randomness flows through the seeded RNG.
  */
 import {
+  LEAD_CHANCE_MAX,
+  LEAD_CHANCE_MIN,
   LEAD_SPAWN_CHANCE,
   LOAN_PRODUCT_LABEL,
+  MARKETING_LEAD_BONUS_PER_TIER,
   MAX_ACTIVE_LOANS,
+  RATE_LEAD_SENSITIVITY,
   STARTING_INTEREST_RATE,
 } from '../constants';
+import { awardAchievement } from '../economy';
 import { initialDocuments } from '../loans';
 import { mulberry32 } from '../rng';
+import { tiersOwned } from '../upgrades';
 import type { GameEvent, GameState, LoanProduct, LoanPurpose, TraitKey } from '../types';
 
 interface Archetype {
@@ -50,8 +56,19 @@ export function maybeSpawnLead(state: GameState): void {
   const activeLoans = Object.values(state.loans).filter((l) => l.stage !== 'completed').length;
   if (activeLoans >= MAX_ACTIVE_LOANS) return;
 
+  // Marketing upgrades and low interest rates bring more shoppers (GDD §7/§8).
+  const chance = Math.min(
+    LEAD_CHANCE_MAX,
+    Math.max(
+      LEAD_CHANCE_MIN,
+      LEAD_SPAWN_CHANCE +
+        MARKETING_LEAD_BONUS_PER_TIER * tiersOwned(state, 'marketing') +
+        (STARTING_INTEREST_RATE - state.stats.interestRate) * RATE_LEAD_SENSITIVITY,
+    ),
+  );
+
   const rng = mulberry32((state.rngSeed ^ (state.clock.day * 2_654_435_761)) >>> 0);
-  if (rng.next() >= LEAD_SPAWN_CHANCE) return;
+  if (rng.next() >= chance) return;
 
   const archetype = ARCHETYPES[rng.int(0, ARCHETYPES.length - 1)];
   if (!archetype) return;
@@ -109,6 +126,7 @@ export function maybeSpawnLead(state: GameState): void {
   };
 
   pushLeadEvent(state, name, archetype.product);
+  awardAchievement(state, 'scout'); // GDD §10 — first fresh lead
 }
 
 function pushLeadEvent(state: GameState, name: string, product: LoanProduct): void {
