@@ -24,6 +24,9 @@ export const SPRITE_GENDER: Record<number, SpriteGender> = {
   14: 'f', // long brown hair, cream shirt
   15: 'm', // red curls, black sweater
   16: 'f', // red bun, glasses
+  17: 'f', // silver bun, glasses, cream cardigan
+  18: 'm', // gray hair, glasses, black sweater
+  19: 'f', // dark updo, black cardigan
 };
 
 export function spritesForGender(gender: SpriteGender): number[] {
