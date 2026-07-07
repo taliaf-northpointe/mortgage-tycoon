@@ -65,14 +65,14 @@ describe('lead generation (GDD §13 decision 8)', () => {
     expect(spawned.length).toBeGreaterThan(15); // enough to force portrait repeats
     for (const c of spawned) {
       expect(c.portraitId).toBeGreaterThanOrEqual(2);
-      expect(c.portraitId).toBeLessThanOrEqual(14);
+      expect(c.portraitId).toBeLessThanOrEqual(17);
       expect(c.about).toBeTruthy();
       (seen[c.portraitId ?? 0] ??= []).push(c.name);
     }
 
     // round-robin: no portrait is reused until every persona has appeared
     const counts = Object.values(seen).map((names) => names.length);
-    expect(Object.keys(seen)).toHaveLength(13); // all 13 personas walked in
+    expect(Object.keys(seen)).toHaveLength(16); // all 16 personas walked in
     expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1);
 
     // any reused portrait must arrive with a brand-new name (variant persona)

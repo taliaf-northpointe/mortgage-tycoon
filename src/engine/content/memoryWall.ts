@@ -22,6 +22,9 @@ const THANK_YOU_BY_PORTRAIT: Record<number, string> = {
   12: 'The lower payment goes straight into the college fund now. You made a real difference for our kids.',
   13: 'The view is worth every box we packed. Thanks for keeping pace with us — we never waited on you once.',
   14: 'The corgi has thoroughly inspected and approved the backyard. So do we. Thank you for everything!',
+  15: 'After fifty years in this house, the new payment feels like a gift. Thank you for taking such gentle care of us.',
+  16: 'Everyone has their own room now and the peace treaty is holding. Thank you from all four of us!',
+  17: 'The bearded dragon claimed the warmest windowsill in town, and we claimed our first home. Thank you for believing in us!',
 };
 
 /** Fallback notes for customers from before the portrait era. */
