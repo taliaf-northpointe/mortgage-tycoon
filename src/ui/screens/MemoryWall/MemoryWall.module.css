@@ -90,7 +90,7 @@
 
 .wall {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 26px 22px;
   align-items: start;
   padding-top: 8px;
@@ -138,37 +138,36 @@
   border-radius: 2px;
 }
 
+/* The closing photo: the whole house, with the family standing in front. */
 .photos {
-  display: flex;
-  gap: 10px;
-  align-items: stretch;
-  height: 150px;
-}
-
-.familyPhoto {
-  flex: 0 0 38%;
-  object-fit: cover;
-  object-position: 50% 8%;
-  background: var(--color-cream);
-  border-radius: var(--radius-sm);
-  border: var(--border-soft);
-  min-width: 0;
+  position: relative;
 }
 
 .housePhoto {
-  flex: 1;
-  object-fit: cover;
-  background: var(--color-cream);
+  display: block;
+  width: 100%;
+  height: auto; /* natural aspect — the full house on any screen size */
   border-radius: var(--radius-sm);
   border: var(--border-soft);
-  min-width: 0;
+}
+
+.familyPhoto {
+  position: absolute;
+  left: 12px;
+  bottom: -8px;
+  height: 46%;
+  width: auto;
+  max-width: 45%;
+  object-fit: contain;
+  object-position: bottom;
+  filter: drop-shadow(0 3px 5px #2e241755);
 }
 
 .familyInitial {
-  flex: 1;
   display: flex;
   align-items: center;
   justify-content: center;
+  height: 150px;
   font-size: 44px;
   font-weight: 700;
   color: var(--color-paper);
@@ -177,7 +176,7 @@
 }
 
 .names {
-  margin: 8px 0 0;
+  margin: 10px 0 0;
   color: var(--color-ink);
 }
 
