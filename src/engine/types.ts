@@ -102,6 +102,22 @@ export interface Employee {
 /** GDD §6 — office mishaps that make a good day harder. */
 export type DisruptionKind = 'wifiDown' | 'printerJam' | 'systemUpdate' | 'coffeeOut';
 
+/** One page of the Wall of Homes scrapbook (v11) — written when a loan funds. */
+export interface MemoryEntry {
+  loanId: string;
+  customerName: string;
+  portraitId: number | null; // borrower art; null → drawn fallback via portraitSeed
+  portraitSeed: string;
+  houseName: string;
+  neighborhoodId: string;
+  product: LoanProduct;
+  purpose: LoanPurpose;
+  amount: number;
+  closingDay: number | null; // null for memories backfilled from older saves
+  season: Season | null;
+  note: string; // their thank-you note
+}
+
 export interface GameEvent {
   id: string; // deterministic: "evt-<day>-<hour>-<n>"
   day: number;
@@ -133,7 +149,7 @@ export interface GlossaryProgress {
 
 export interface GameState {
   meta: {
-    saveVersion: 10;
+    saveVersion: 11;
     playerName: string;
     officeName: string;
     createdAt: string;
@@ -163,5 +179,7 @@ export interface GameState {
   glossary: Record<string, GlossaryProgress>;
   /** Active office mishap (GDD §6); optional — absent/null when everything hums along. */
   disruption?: { kind: DisruptionKind; hoursLeft: number } | null;
+  /** The Wall of Homes (v11) — every family helped, in closing order. */
+  memoryWall: MemoryEntry[];
   rngSeed: number;
 }

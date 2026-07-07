@@ -18,7 +18,7 @@ export const STARTER_CUSTOMER_ID = 'cust-sarah-chen';
 export function createStarterState(rngSeed = 42): GameState {
   return {
     meta: {
-      saveVersion: 10,
+      saveVersion: 11,
       playerName: 'You',
       officeName: 'Old Town Office',
       // Fixed for determinism; the real New Game flow (M2) stamps the actual date.
@@ -139,6 +139,7 @@ export function createStarterState(rngSeed = 42): GameState {
     todayRevenueByHour: Array.from({ length: 10 }, () => 0),
     xpAtDayStart: 0,
     glossary: {},
+    memoryWall: [],
     rngSeed,
   };
 }

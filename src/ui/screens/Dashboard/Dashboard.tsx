@@ -3,6 +3,7 @@ import {
   Briefcase,
   Coins,
   FolderKanban,
+  Heart,
   Home,
   Map,
   Pause,
@@ -29,7 +30,9 @@ type Speed = 0 | 1 | 2 | 3;
 interface DashboardProps {
   speed: Speed;
   onSpeedChange(speed: Speed): void;
-  onNavigate(screen: 'pipeline' | 'learning' | 'employees' | 'upgrades' | 'map' | 'audioSettings'): void;
+  onNavigate(
+    screen: 'pipeline' | 'learning' | 'employees' | 'upgrades' | 'map' | 'memoryWall' | 'audioSettings',
+  ): void;
   onExitToMenu(): void;
 }
 
@@ -87,6 +90,15 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu }: Da
           onClick={() => {
             audioManager.playCue('menuNavigation');
             onNavigate('map');
+          }}
+        />
+        <NavItem
+          icon={<Heart size={17} />}
+          label="Wall of Homes"
+          badge={game.memoryWall.length || undefined}
+          onClick={() => {
+            audioManager.playCue('menuNavigation');
+            onNavigate('memoryWall');
           }}
         />
         <NavItem

@@ -54,11 +54,14 @@ function v1Save() {
   };
 }
 
-describe('save migration chain v1 → v10', () => {
+describe('save migration chain v1 → v11', () => {
   it('upgrades stages, documents, loan type, roles, and newer fields', () => {
     const migrated = parseSave(JSON.stringify(v1Save()));
 
-    expect(migrated.meta.saveVersion).toBe(10);
+    expect(migrated.meta.saveVersion).toBe(11);
+
+    // v10 → v11 — the Wall of Homes exists (no completed loans in this save yet)
+    expect(migrated.memoryWall).toEqual([]);
 
     const loan = migrated.loans['LN-2026-0001'];
     expect(loan).toBeDefined();

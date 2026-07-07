@@ -35,6 +35,7 @@ import {
 } from './constants';
 import { maybeSpawnDisruption, tickDisruption } from './content/disruptions';
 import { maybeSpawnLead } from './content/leads';
+import { buildMemoryEntry } from './content/memoryWall';
 import {
   awardAchievement,
   chargePayroll,
@@ -109,6 +110,8 @@ export function advanceLoanStage(state: GameState, loan: Loan): void {
     }
     state.stats.xp += XP_PER_COMPLETED_LOAN;
     loan.statusTag = 'Closed';
+    // The Wall of Homes (v11) — every family helped gets a scrapbook page.
+    if (customer) state.memoryWall.push(buildMemoryEntry(state, loan, customer));
     pushEvent(
       state,
       'loans',

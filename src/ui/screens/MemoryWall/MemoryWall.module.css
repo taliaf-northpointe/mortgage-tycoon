@@ -1,0 +1,222 @@
+.screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 16px 20px 40px;
+  background: color-mix(in srgb, var(--color-honey) 8%, var(--color-cream));
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.backButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  color: var(--color-ink);
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-pill);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: var(--text-body);
+  color: var(--color-cocoa);
+}
+
+.breadcrumb button {
+  font-family: var(--font-body);
+  font-size: var(--text-body);
+  color: var(--color-cocoa);
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.breadcrumb strong {
+  color: var(--color-ink);
+}
+
+.countChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: auto;
+  font-size: var(--text-label);
+  font-weight: 600;
+  color: var(--color-terracotta);
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+}
+
+.empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  text-align: center;
+  color: var(--color-cocoa);
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+  padding: 60px 24px;
+  margin: auto 0;
+}
+
+.empty p {
+  max-width: 440px;
+  margin: 0;
+}
+
+/* ── The scrapbook ──────────────────────────────────── */
+
+.wall {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 26px 22px;
+  align-items: start;
+  padding-top: 8px;
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  background: var(--color-paper);
+  border: var(--border-soft);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-soft);
+  padding: 18px 18px 16px;
+}
+
+.tilt0 {
+  transform: rotate(-1.1deg);
+}
+
+.tilt1 {
+  transform: rotate(0.9deg);
+}
+
+.tilt2 {
+  transform: rotate(-0.4deg);
+}
+
+.card:hover {
+  transform: rotate(0deg) translateY(-3px);
+  transition: transform 140ms ease;
+}
+
+/* a little washi tape on top */
+.tape {
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-2deg);
+  width: 74px;
+  height: 18px;
+  background: color-mix(in srgb, var(--color-sunset) 45%, var(--color-paper));
+  opacity: 0.85;
+  border-radius: 2px;
+}
+
+.photos {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+  height: 150px;
+}
+
+.familyPhoto {
+  flex: 0 0 38%;
+  object-fit: cover;
+  object-position: 50% 8%;
+  background: var(--color-cream);
+  border-radius: var(--radius-sm);
+  border: var(--border-soft);
+  min-width: 0;
+}
+
+.housePhoto {
+  flex: 1;
+  object-fit: cover;
+  background: var(--color-cream);
+  border-radius: var(--radius-sm);
+  border: var(--border-soft);
+  min-width: 0;
+}
+
+.familyInitial {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 44px;
+  font-weight: 700;
+  color: var(--color-paper);
+  background: var(--color-sunset);
+  border-radius: var(--radius-sm);
+}
+
+.names {
+  margin: 8px 0 0;
+  color: var(--color-ink);
+}
+
+.homeLine {
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+}
+
+.chips {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 4px;
+}
+
+.chip,
+.chipQuiet {
+  font-size: var(--text-label);
+  font-weight: 600;
+  border-radius: var(--radius-pill);
+  padding: 3px 10px;
+}
+
+.chip {
+  color: var(--color-ink);
+  background: color-mix(in srgb, var(--color-sage) 25%, var(--color-paper));
+}
+
+.chipQuiet {
+  color: var(--color-cocoa);
+  background: var(--color-sand);
+}
+
+.note {
+  margin: 8px 0 0;
+  font-style: italic;
+  font-size: var(--text-caption);
+  line-height: 1.55;
+  color: var(--color-cocoa);
+  border-top: 1px dashed var(--color-sand);
+  padding-top: 8px;
+}

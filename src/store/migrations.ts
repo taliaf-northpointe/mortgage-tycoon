@@ -5,9 +5,10 @@
  */
 
 import { genderForName, RETIRED_SPRITES, spritesForGender } from '../engine/content/characterSprites';
+import { thankYouNote } from '../engine/content/memoryWall';
 import { initialUpgradeStates } from '../engine/upgrades';
 
-export const CURRENT_SAVE_VERSION = 10;
+export const CURRENT_SAVE_VERSION = 11;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -245,6 +246,50 @@ function migrateV9toV10(data: Record<string, unknown>): Record<string, unknown> 
   return next;
 }
 
+/**
+ * v10 → v11 (the Wall of Homes): adds `memoryWall` and backfills a scrapbook
+ * page for every already-completed loan, so long-running saves open the wall
+ * to familiar faces. Backfilled pages have no closing date (it wasn't kept).
+ */
+function migrateV10toV11(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+  if (!Array.isArray(next['memoryWall'])) {
+    const loans = (next['loans'] ?? {}) as Record<string, Record<string, unknown>>;
+    const customers = (next['customers'] ?? {}) as Record<string, Record<string, unknown>>;
+    next['memoryWall'] = Object.values(loans)
+      .filter((loan) => loan && loan['stage'] === 'completed')
+      .flatMap((loan) => {
+        const customer = customers[String(loan['customerId'] ?? '')];
+        if (!customer) return [];
+        const dreamHome = (customer['dreamHome'] ?? {}) as Record<string, unknown>;
+        const portraitSeed = String(customer['portraitSeed'] ?? 'someone');
+        return [
+          {
+            loanId: String(loan['id'] ?? ''),
+            customerName: String(customer['name'] ?? 'A happy homeowner'),
+            portraitId: typeof customer['portraitId'] === 'number' ? customer['portraitId'] : null,
+            portraitSeed,
+            houseName: String(dreamHome['name'] ?? 'Their new home'),
+            neighborhoodId: String(dreamHome['neighborhoodId'] ?? 'oldTown'),
+            product: loan['product'] ?? 'conventional',
+            purpose: loan['purpose'] ?? 'purchase',
+            amount: typeof loan['amount'] === 'number' ? loan['amount'] : 0,
+            closingDay: null,
+            season: null,
+            note: thankYouNote({
+              portraitId: typeof customer['portraitId'] === 'number' ? customer['portraitId'] : undefined,
+              portraitSeed,
+            }),
+          },
+        ];
+      });
+  }
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['saveVersion'] = 11;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
   2: migrateV2toV3,
@@ -255,6 +300,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   7: migrateV7toV8,
   8: migrateV8toV9,
   9: migrateV9toV10,
+  10: migrateV10toV11,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

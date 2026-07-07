@@ -11,6 +11,7 @@ import { TutorialOverlay } from './ui/screens/Tutorial/TutorialOverlay';
 import { Upgrades } from './ui/screens/Upgrades/Upgrades';
 import { WorldMap } from './ui/screens/WorldMap/WorldMap';
 import { LearningCenter } from './ui/screens/LearningCenter/LearningCenter';
+import { MemoryWall } from './ui/screens/MemoryWall/MemoryWall';
 import { MainMenu } from './ui/screens/MainMenu/MainMenu';
 import { Pipeline } from './ui/screens/Pipeline/Pipeline';
 import { Toasts } from './ui/components/Toasts';
@@ -25,6 +26,7 @@ export type ScreenId =
   | 'employees'
   | 'upgrades'
   | 'map'
+  | 'memoryWall'
   | 'endOfDay'
   | 'audioSettings';
 
@@ -103,6 +105,9 @@ export function App() {
     }
     if (screen === 'map') {
       return <WorldMap onBack={() => setScreen('dashboard')} />;
+    }
+    if (screen === 'memoryWall') {
+      return <MemoryWall onBack={() => setScreen('dashboard')} />;
     }
     if (screen === 'audioSettings') {
       return <AudioSettings onBack={() => setScreen(hasGame ? 'dashboard' : 'mainMenu')} />;
