@@ -51,6 +51,12 @@ export interface Customer {
   happinessAtWeekStart: number; // baseline for the "↑ 8 this week" trend chip (M5)
   trust: number; // 1–5 (fractional internally, bars in UI)
   portraitSeed: string;
+  /** Talia's borrower art (public/assets/art/borrower-N.png); absent in old saves → drawn fallback. */
+  portraitId?: number;
+  /** 0 = original art; 1+ = repeat lead re-colored in the UI to look like a new person. */
+  portraitVariant?: number;
+  /** One-line persona ("about them") shown on the Customer Profile. */
+  about?: string;
   dreamHome: {
     name: string;
     neighborhoodId: string;
@@ -124,7 +130,7 @@ export interface GlossaryProgress {
 
 export interface GameState {
   meta: {
-    saveVersion: 8;
+    saveVersion: 9;
     playerName: string;
     officeName: string;
     createdAt: string;

@@ -51,6 +51,33 @@ describe('lead generation (GDD §13 decision 8)', () => {
     expect(spawned.eventLog.some((e) => e.title.startsWith('New lead'))).toBe(true);
   });
 
+  it('every lead is a photo persona; repeat portraits become re-colored new people', () => {
+    // spawn many leads, completing loans as we go so the cap never blocks
+    let s = structuredClone(createStarterState(31));
+    const seen: Record<number, string[]> = {};
+    for (let day = 2; day < 120; day++) {
+      s.clock.day = day;
+      maybeSpawnLead(s);
+      for (const loan of Object.values(s.loans)) loan.stage = 'completed';
+    }
+
+    const spawned = Object.values(s.customers).filter((c) => c.id !== 'cust-sarah-chen');
+    expect(spawned.length).toBeGreaterThan(15); // enough to force portrait repeats
+    for (const c of spawned) {
+      expect(c.portraitId).toBeGreaterThanOrEqual(2);
+      expect(c.portraitId).toBeLessThanOrEqual(14);
+      expect(c.about).toBeTruthy();
+      (seen[c.portraitId ?? 0] ??= []).push(c.name);
+    }
+
+    // any reused portrait must arrive with a brand-new name (variant persona)
+    for (const names of Object.values(seen)) {
+      expect(new Set(names).size).toBe(names.length);
+    }
+    const repeated = Object.values(seen).find((names) => names.length > 1);
+    expect(repeated).toBeDefined();
+  });
+
   it('respects the active-loan cap', () => {
     const s = createStarterState(7);
     // stuff the pipeline to the cap

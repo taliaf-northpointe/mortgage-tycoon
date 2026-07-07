@@ -15,6 +15,7 @@ import type { Customer, GameState, Loan } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
 import { GlossaryTerm } from '../../glossary/GlossaryTerm';
+import { borrowerArtUrl, houseArtUrl, portraitFilter } from '../../customerArt';
 import { moneyFull } from '../../format';
 import styles from './CustomerProfile.module.css';
 
@@ -89,6 +90,7 @@ export function CustomerProfile({ customerId, onSelectCustomer, onBack }: Custom
           <span className={styles.buyerType}>
             {customer.buyerTypeLabel} · Age {customer.age}
           </span>
+          {customer.about && <p className={styles.about}>{customer.about}</p>}
           <div className={styles.traits}>
             {customer.traits.map((trait) => (
               <span key={trait} className={styles.traitChip}>
@@ -123,7 +125,7 @@ export function CustomerProfile({ customerId, onSelectCustomer, onBack }: Custom
         <section className={styles.panel}>
           <h4>Dream Home</h4>
           <div className={styles.homeCard}>
-            <HomeArt seed={customer.portraitSeed} />
+            <HomeArt customer={customer} />
             <h3>{customer.dreamHome.name}</h3>
             <span className={styles.homeMeta}>
               {NEIGHBORHOOD_DISPLAY_NAME[customer.dreamHome.neighborhoodId] ?? 'Meadowbrook'} ·{' '}
@@ -264,8 +266,25 @@ function encouragement(loan: Loan, owed: number): string {
   return "Everything's moving along nicely. Keep it up!";
 }
 
-/** Cozy procedural portrait — deterministic from the customer's seed. */
+/** Talia's borrower art when the customer has one; drawn fallback otherwise. */
 function Portrait({ customer }: { customer: Customer }) {
+  if (customer.portraitId) {
+    const filter = portraitFilter(customer);
+    return (
+      <div className={styles.portraitArt}>
+        <img
+          src={borrowerArtUrl(customer.portraitId)}
+          alt=""
+          style={filter ? { filter } : undefined}
+        />
+      </div>
+    );
+  }
+  return <DrawnPortrait customer={customer} />;
+}
+
+/** Cozy procedural portrait — deterministic from the customer's seed. */
+function DrawnPortrait({ customer }: { customer: Customer }) {
   const hue = seedNumber(customer.portraitSeed);
   const shirts = ['var(--color-sky)', 'var(--color-sage)', 'var(--color-lavender)', 'var(--color-rose)'];
   const shirt = shirts[hue % shirts.length] ?? 'var(--color-sky)';
@@ -286,7 +305,23 @@ function Portrait({ customer }: { customer: Customer }) {
   );
 }
 
-function HomeArt({ seed }: { seed: string }) {
+/** The matching dream-home illustration; repeats get the same color shift as their owner. */
+function HomeArt({ customer }: { customer: Customer }) {
+  if (customer.portraitId) {
+    const filter = portraitFilter(customer);
+    return (
+      <img
+        className={styles.homeArtPhoto}
+        src={houseArtUrl(customer.portraitId)}
+        alt=""
+        style={filter ? { filter } : undefined}
+      />
+    );
+  }
+  return <DrawnHomeArt seed={customer.portraitSeed} />;
+}
+
+function DrawnHomeArt({ seed }: { seed: string }) {
   const roofs = ['var(--color-terracotta)', 'var(--color-sky)', 'var(--color-sage)', 'var(--color-lavender)'];
   const roof = roofs[seedNumber(seed) % roofs.length] ?? 'var(--color-terracotta)';
   return (

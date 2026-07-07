@@ -118,6 +118,32 @@
   overflow: hidden;
 }
 
+/* Talia's full-body borrower art (singles are tall, couples/families wide). */
+.portraitArt {
+  align-self: center;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+  background: var(--color-cream);
+  border-radius: var(--radius-lg);
+  padding: 12px 8px 0;
+  overflow: hidden;
+}
+
+.portraitArt img {
+  max-width: 100%;
+  max-height: 250px;
+  object-fit: contain;
+}
+
+.about {
+  margin: 6px 0 0;
+  text-align: center;
+  font-size: var(--text-caption);
+  color: var(--color-cocoa);
+  line-height: 1.5;
+}
+
 .name {
   text-align: center;
   margin-top: 4px;
@@ -226,6 +252,15 @@
 .homeArt {
   width: 160px;
   height: 90px;
+}
+
+/* Talia's full-scene dream-home illustration */
+.homeArtPhoto {
+  width: 100%;
+  max-height: 200px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  border: var(--border-soft);
 }
 
 .homeMeta {

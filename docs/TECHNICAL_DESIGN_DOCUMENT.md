@@ -120,7 +120,10 @@ interface Customer {
   happiness: number;                 // 0–100
   happinessAtWeekStart: number;      // baseline for the "↑ 8 this week" trend chip (M5)
   trust: number;                     // 1–5 (fractional internally, bars in UI)
-  portraitSeed: string;              // deterministic procedural portrait
+  portraitSeed: string;              // deterministic procedural portrait (fallback)
+  portraitId?: number;               // borrower-N.png (Talia's art); optional — old saves keep the drawn fallback
+  portraitVariant?: number;          // 0 = original; 1+ = repeat lead, re-colored in the UI (hue shift)
+  about?: string;                    // one-line persona from the archetype, shown on the profile
   dreamHome: {
     name: string; neighborhoodId: string; beds: number; baths: number;
     categoryChip: string; price: number; downPayment: number; monthly: number;
@@ -232,6 +235,7 @@ interface DaySummary {
 - **v5 → v6** (M8 Map + Tutorial): adds `neighborhood.scouted` (true for non-locked so veterans keep their visible stats) and `meta.tutorialDone = true` for existing saves (only fresh games see the tutorial).
 - **v6 → v7** (M8.1 fix): adds `xpAtDayStart` so the End-of-Day summary reports the whole day (revenue is recorded at the payout source; completions come from the day's events) instead of a rollover-instant diff that always read zero in live play.
 - **v7 → v8** (art sprites): adds `Employee.spriteId` — gender-matched via the shared first-name table, assigned least-used-first so the cast stays distinct.
+- **v8 → v9** (borrower art): backfills Sarah Chen's `portraitId`/`about`. The customer portrait fields are otherwise optional — new leads get them from their archetype (one persona per borrower portrait, `borrower-2..14.png`; repeats take the next alternate name plus a UI color shift so they read as new people); other pre-v9 customers keep the procedural drawn portrait.
 
 ## 6.1 MortgageGlossary service (v2, GDD §4.1)
 

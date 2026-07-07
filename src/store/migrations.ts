@@ -7,7 +7,7 @@
 import { genderForName, spritesForGender } from '../engine/content/characterSprites';
 import { initialUpgradeStates } from '../engine/upgrades';
 
-export const CURRENT_SAVE_VERSION = 8;
+export const CURRENT_SAVE_VERSION = 9;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -186,6 +186,27 @@ function migrateV7toV8(data: Record<string, unknown>): Record<string, unknown> {
   return next;
 }
 
+/**
+ * v8 → v9 (borrower art): Sarah Chen — deterministic in every save — gets her
+ * portrait and persona line. Other pre-v9 customers keep the drawn fallback;
+ * new leads arrive with portraits from their archetype.
+ */
+function migrateV8toV9(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+  const customers = (next['customers'] ?? {}) as Record<string, Record<string, unknown>>;
+  const sarah = Object.values(customers).find((c) => c && c['name'] === 'Sarah Chen');
+  if (sarah && typeof sarah['portraitId'] !== 'number') {
+    sarah['portraitId'] = 1;
+    sarah['portraitVariant'] = 0;
+    sarah['about'] =
+      'Your very first customer! She has a color-coded folder of listings and a golden retriever who comes along to every showing.';
+  }
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['saveVersion'] = 9;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
   2: migrateV2toV3,
@@ -194,6 +215,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   5: migrateV5toV6,
   6: migrateV6toV7,
   7: migrateV7toV8,
+  8: migrateV8toV9,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

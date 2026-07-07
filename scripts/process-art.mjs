@@ -6,6 +6,10 @@
  *   Desk.png            → desk.png          (bg + soft shadow stripped, trimmed)
  *   Character N.png     → char-N.png        (bg stripped, baked-in desk rows
  *                                            cropped away, trimmed)
+ *   Borrower N.png      → borrower-N.png    (bg stripped, trimmed — full-body
+ *                                            customer portraits, pets included)
+ *   House N.png         → house-N.png       (full-scene dream-home art for the
+ *                                            matching borrower; resized only)
  *
  * Rerun any time:  node scripts/process-art.mjs
  */
@@ -160,6 +164,24 @@ for (let n = 1; n <= 8; n++) {
   const src = `Character ${n}.png`;
   if (!existsSync(join(ROOT, src))) continue;
   save(`char-${n}.png`, resize(trim(cropDeskRows(stripBackground(load(src), 34))), 300));
+}
+
+for (let n = 1; n <= 30; n++) {
+  const src = `Borrower ${n}.png`;
+  if (!existsSync(join(ROOT, src))) continue;
+  save(`borrower-${n}.png`, resize(trim(stripBackground(load(src), 34)), 420));
+}
+
+for (let n = 1; n <= 30; n++) {
+  const src = `House ${n}.png`;
+  if (!existsSync(join(ROOT, src))) continue;
+  save(`house-${n}.png`, resize(load(src), 640));
+}
+
+if (existsSync(join(ROOT, 'Home Menu.png'))) {
+  // keep only the illustrated house side; the live menu card replaces the
+  // baked-in title/buttons on the left
+  save('menu-scene.png', resize(cropFraction(load('Home Menu.png'), 0.49, 0.02, 0.99, 0.98), 1100));
 }
 
 if (existsSync(join(ROOT, 'Map 2.png'))) {

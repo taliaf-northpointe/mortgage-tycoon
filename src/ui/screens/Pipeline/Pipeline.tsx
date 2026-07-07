@@ -9,10 +9,11 @@ import {
   WEEKDAYS,
 } from '../../../engine/constants';
 import { STAGE_GLOSSARY_KEY } from '../../../engine/content/glossary';
-import type { Loan, LoanStage } from '../../../engine/types';
+import type { Customer, Loan, LoanStage } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
 import { Confetti } from '../../components/Confetti';
 import { GlossaryTerm } from '../../glossary/GlossaryTerm';
+import { borrowerArtUrl, portraitFilter } from '../../customerArt';
 import { initials, moneyCompact, moneyFull } from '../../format';
 import { LoanDetailModal } from './LoanDetailModal';
 import styles from './Pipeline.module.css';
@@ -118,6 +119,7 @@ export function Pipeline({ onBack, onOpenCustomer }: PipelineProps) {
                   key={loan.id}
                   loan={loan}
                   customerName={game.customers[loan.customerId]?.name ?? 'Customer'}
+                  customer={game.customers[loan.customerId]}
                   onClick={() => setSelectedLoanId(loan.id)}
                 />
               ))}
@@ -142,17 +144,29 @@ export function Pipeline({ onBack, onOpenCustomer }: PipelineProps) {
 function LoanCard({
   loan,
   customerName,
+  customer,
   onClick,
 }: {
   loan: Loan;
   customerName: string;
+  customer?: Customer;
   onClick(): void;
 }) {
   const progress = STAGE_PROGRESS_PCT[loan.stage];
   return (
     <button type="button" className={styles.card} onClick={onClick}>
       <div className={styles.cardTop}>
-        <span className={styles.cardAvatar}>{initials(customerName)}</span>
+        {customer?.portraitId ? (
+          <span className={styles.cardFace}>
+            <img
+              src={borrowerArtUrl(customer.portraitId)}
+              alt=""
+              style={portraitFilter(customer) ? { filter: portraitFilter(customer) } : undefined}
+            />
+          </span>
+        ) : (
+          <span className={styles.cardAvatar}>{initials(customerName)}</span>
+        )}
         <div>
           <strong>{customerName}</strong>
           <span className={styles.cardType}>

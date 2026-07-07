@@ -18,7 +18,7 @@ export const STARTER_CUSTOMER_ID = 'cust-sarah-chen';
 export function createStarterState(rngSeed = 42): GameState {
   return {
     meta: {
-      saveVersion: 8,
+      saveVersion: 9,
       playerName: 'You',
       officeName: 'Old Town Office',
       // Fixed for determinism; the real New Game flow (M2) stamps the actual date.
@@ -39,6 +39,10 @@ export function createStarterState(rngSeed = 42): GameState {
         happinessAtWeekStart: 80,
         trust: 2,
         portraitSeed: 'sarah-chen',
+        portraitId: 1,
+        portraitVariant: 0,
+        about:
+          'Your very first customer! She has a color-coded folder of listings and a golden retriever who comes along to every showing.',
         dreamHome: {
           name: 'Cozy Bungalow',
           neighborhoodId: 'oldTown',

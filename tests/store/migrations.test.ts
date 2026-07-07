@@ -54,11 +54,11 @@ function v1Save() {
   };
 }
 
-describe('save migration chain v1 → v8', () => {
+describe('save migration chain v1 → v9', () => {
   it('upgrades stages, documents, loan type, roles, and newer fields', () => {
     const migrated = parseSave(JSON.stringify(v1Save()));
 
-    expect(migrated.meta.saveVersion).toBe(8);
+    expect(migrated.meta.saveVersion).toBe(9);
 
     const loan = migrated.loans['LN-2026-0001'];
     expect(loan).toBeDefined();
@@ -125,6 +125,10 @@ describe('save migration chain v1 → v8', () => {
     };
     const migrated = parseSave(JSON.stringify(save));
     expect(migrated.customers['cust-1']?.happinessAtWeekStart).toBe(64);
+
+    // v8 → v9 — Sarah Chen gets her borrower portrait; strangers keep the fallback
+    expect(migrated.customers['cust-1']?.portraitId).toBe(1);
+    expect(migrated.customers['cust-1']?.about).toBeTruthy();
   });
 
   it('maps every v1 loan type onto the restricted product/purpose set', () => {

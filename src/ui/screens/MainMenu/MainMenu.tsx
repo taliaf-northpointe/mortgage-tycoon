@@ -5,7 +5,6 @@ import { useGameStore } from '../../../store/gameStore';
 import { hasSave, loadGame, parseSave, serializeSave } from '../../../store/saveSystem';
 import { Button } from '../../components/Button';
 import styles from './MainMenu.module.css';
-import { TownScene } from './TownScene';
 
 interface MainMenuProps {
   /** Called once a game is running (new or restored) — App shows the office. */
@@ -64,8 +63,8 @@ export function MainMenu({ onEnterGame, onOpenSettings }: MainMenuProps) {
 
   return (
     <main className={styles.screen}>
-      <TownScene />
-      <section className={styles.card}>
+      <div className={styles.menuSide}>
+        <section className={styles.card}>
         <span className={styles.pill}>A Cozy Tycoon Game</span>
         <h1>{GAME_TITLE}</h1>
         <p className={styles.tagline}>{TAGLINE}</p>
@@ -119,11 +118,17 @@ export function MainMenu({ onEnterGame, onOpenSettings }: MainMenuProps) {
           />
         )}
 
-        {notice && <p className={styles.notice}>{notice}</p>}
-        <p className={styles.hint}>
-          Press <kbd>ENTER</kbd> for New Game
-        </p>
-      </section>
+          {notice && <p className={styles.notice}>{notice}</p>}
+          <p className={styles.hint}>
+            Press <kbd>ENTER</kbd> for New Game
+          </p>
+        </section>
+      </div>
+      <img
+        className={styles.scene}
+        src={`${import.meta.env.BASE_URL}assets/art/menu-scene.png`}
+        alt=""
+      />
     </main>
   );
 }

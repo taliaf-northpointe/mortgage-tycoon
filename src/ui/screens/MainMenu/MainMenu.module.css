@@ -1,10 +1,7 @@
 .screen {
-  min-height: 100vh;
+  height: 100vh;
   display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 24px;
-  position: relative;
+  align-items: stretch;
   overflow: hidden;
   background: linear-gradient(
     to bottom,
@@ -13,28 +10,26 @@
   );
 }
 
-.town {
-  position: absolute;
-  inset: auto 0 0 0;
-  width: 100%;
-  height: 320px;
-  pointer-events: none;
+.menuSide {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
 }
 
-.bob {
-  animation: bob 2.4s ease-in-out infinite alternate;
+/* Talia's illustrated house (Home Menu art, baked-in UI cropped away) */
+.scene {
+  width: min(54vw, 980px);
+  height: 100%;
+  object-fit: cover;
+  object-position: left center;
 }
 
-.bobSlow {
-  animation: bob 2.4s ease-in-out 1.2s infinite alternate;
-}
-
-@keyframes bob {
-  from {
-    transform: translateY(-2px);
-  }
-  to {
-    transform: translateY(2px);
+@media (max-width: 900px) {
+  .scene {
+    display: none;
   }
 }
 
@@ -52,7 +47,6 @@
   padding: 40px 56px 28px;
   max-width: 460px;
   width: 100%;
-  margin-bottom: 120px;
 }
 
 .pill {

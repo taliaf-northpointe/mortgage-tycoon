@@ -23,9 +23,12 @@ import { tiersOwned } from '../upgrades';
 import type { GameEvent, GameState, LoanProduct, LoanPurpose, TraitKey } from '../types';
 
 interface Archetype {
-  name: string;
+  /** names[0] goes with the original art; names[1+] are the re-colored repeat leads. */
+  names: string[];
+  portraitId: number; // public/assets/art/borrower-N.png (Talia's art; 1 = Sarah, starter only)
   age: number;
   buyerTypeLabel: string;
+  about: string; // name-neutral so it fits the re-colored variants too
   traits: TraitKey[];
   product: LoanProduct;
   purpose: LoanPurpose;
@@ -33,20 +36,26 @@ interface Archetype {
   home: { name: string; beds: number; baths: number; categoryChip: string };
 }
 
-/** ~12 archetype seeds (GDD §4). Names cycle with a numbered suffix after one pass. */
+/**
+ * The borrower cast (GDD §4) — one persona per portrait in Talia's art set
+ * (borrower-2..14; borrower-1 is Sarah Chen, the tutorial customer). After
+ * every persona has appeared once, repeats reuse the portrait with a fresh
+ * name and a UI color shift (portraitVariant) so they read as new neighbors.
+ */
 const ARCHETYPES: Archetype[] = [
-  { name: 'Marcus Johnson', age: 29, buyerTypeLabel: 'First-time Homebuyer', traits: ['enthusiastic', 'prompt'], product: 'fha', purpose: 'purchase', amountRange: [195_000, 240_000], home: { name: 'Sunny Starter Cottage', beds: 2, baths: 1, categoryChip: 'Starter Home' } },
-  { name: 'Elena Rodriguez', age: 41, buyerTypeLabel: 'Growing Family', traits: ['detailOriented', 'cautious'], product: 'conventional', purpose: 'purchase', amountRange: [275_000, 355_000], home: { name: 'Maple Street Colonial', beds: 4, baths: 2, categoryChip: 'Family Home' } },
-  { name: 'Ravi Sethi', age: 38, buyerTypeLabel: 'Repeat Buyer', traits: ['impatient', 'prompt'], product: 'conventional', purpose: 'purchase', amountRange: [320_000, 420_000], home: { name: 'Hilltop Modern', beds: 3, baths: 2, categoryChip: 'Move-up Home' } },
-  { name: 'Dorothy Wells', age: 67, buyerTypeLabel: 'Downsizing Retiree', traits: ['cautious', 'chatty'], product: 'conventional', purpose: 'purchase', amountRange: [210_000, 280_000], home: { name: 'Garden View Bungalow', beds: 2, baths: 1, categoryChip: 'Cozy Retreat' } },
-  { name: 'James Whitfield', age: 45, buyerTypeLabel: 'Veteran Homebuyer', traits: ['prompt', 'detailOriented'], product: 'va', purpose: 'purchase', amountRange: [250_000, 340_000], home: { name: 'Oakwood Craftsman', beds: 3, baths: 2, categoryChip: 'Family Home' } },
-  { name: 'The Martinez Family', age: 35, buyerTypeLabel: 'Growing Family', traits: ['enthusiastic', 'chatty'], product: 'fha', purpose: 'purchase', amountRange: [230_000, 300_000], home: { name: 'Willow Lane Two-Story', beds: 4, baths: 2, categoryChip: 'Family Home' } },
-  { name: 'Priyanka Desai', age: 33, buyerTypeLabel: 'First-time Homebuyer', traits: ['detailOriented', 'prompt'], product: 'conventional', purpose: 'purchase', amountRange: [260_000, 330_000], home: { name: 'Brick Row Townhome', beds: 3, baths: 2, categoryChip: 'Townhome' } },
-  { name: 'Bill & Nancy Turner', age: 58, buyerTypeLabel: 'Refinancing Homeowners', traits: ['cautious', 'prompt'], product: 'conventional', purpose: 'refinance', amountRange: [210_000, 320_000], home: { name: 'Their Longtime Home', beds: 3, baths: 2, categoryChip: 'Refinance' } },
-  { name: 'Aisha Karim', age: 27, buyerTypeLabel: 'First-time Homebuyer', traits: ['enthusiastic', 'detailOriented'], product: 'fha', purpose: 'purchase', amountRange: [195_000, 235_000], home: { name: 'Cedar Court Condo', beds: 2, baths: 1, categoryChip: 'Condo' } },
-  { name: 'Tom Okafor', age: 52, buyerTypeLabel: 'Veteran Refinancer', traits: ['prompt'], product: 'va', purpose: 'refinance', amountRange: [240_000, 380_000], home: { name: 'The Family Homestead', beds: 4, baths: 2, categoryChip: 'Refinance' } },
-  { name: 'Grace Liu', age: 31, buyerTypeLabel: 'Relocating Professional', traits: ['impatient', 'detailOriented'], product: 'conventional', purpose: 'purchase', amountRange: [290_000, 380_000], home: { name: 'Lakeside Loft', beds: 2, baths: 2, categoryChip: 'City Home' } },
-  { name: 'Sam & Jordan Reyes', age: 36, buyerTypeLabel: 'Growing Family', traits: ['chatty', 'enthusiastic'], product: 'conventional', purpose: 'purchase', amountRange: [300_000, 360_000], home: { name: 'Meadow Edge Ranch', beds: 4, baths: 3, categoryChip: 'Family Home' } },
+  { names: ['Fiona Brennan', 'Marisol Vega', 'Josie Calloway'], portraitId: 2, age: 31, buyerTypeLabel: 'First-time Homebuyer', about: 'Tattoo artist who just opened her own studio — now she wants a little place with good morning light.', traits: ['enthusiastic', 'chatty'], product: 'fha', purpose: 'purchase', amountRange: [200_000, 245_000], home: { name: 'Sunny Starter Cottage', beds: 2, baths: 1, categoryChip: 'Starter Home' } },
+  { names: ['Diane Fairbanks', 'Carol Weston', 'Renee Delacroix'], portraitId: 3, age: 56, buyerTypeLabel: 'Downsizing Executive', about: 'Polished, punctual, and done mowing a big lawn — she wants something easy to lock up and leave.', traits: ['detailOriented', 'cautious'], product: 'conventional', purpose: 'purchase', amountRange: [260_000, 340_000], home: { name: 'Garden View Bungalow', beds: 2, baths: 1, categoryChip: 'Cozy Retreat' } },
+  { names: ['Mateo Alvarez', 'Danny Kovac', 'Jamal Reed'], portraitId: 4, age: 29, buyerTypeLabel: 'First-time Homebuyer', about: 'Been saving since college and finally ready — asks great questions and answers texts in minutes.', traits: ['enthusiastic', 'prompt'], product: 'fha', purpose: 'purchase', amountRange: [195_000, 240_000], home: { name: 'Cedar Court Condo', beds: 2, baths: 1, categoryChip: 'Condo' } },
+  { names: ['The Moreno Family', 'The Castillo Family', 'The Haddad Family'], portraitId: 5, age: 33, buyerTypeLabel: 'Growing Family', about: 'Two working parents and a toddler who needs a yard, like, yesterday.', traits: ['enthusiastic', 'chatty'], product: 'fha', purpose: 'purchase', amountRange: [230_000, 300_000], home: { name: 'Willow Lane Two-Story', beds: 4, baths: 2, categoryChip: 'Family Home' } },
+  { names: ['Cole & Ivy Bennett', 'Nico & Wren Alder', 'Jesse & Marlow Quinn'], portraitId: 6, age: 28, buyerTypeLabel: 'First-time Homebuyers', about: 'Ink-loving couple hunting for a place with a sunny window — their cat has final approval.', traits: ['chatty', 'enthusiastic'], product: 'fha', purpose: 'purchase', amountRange: [210_000, 260_000], home: { name: 'Brick Row Townhome', beds: 3, baths: 2, categoryChip: 'Townhome' } },
+  { names: ['Mei Tanaka', 'Rosa Marchetti', 'Ingrid Holm'], portraitId: 7, age: 63, buyerTypeLabel: 'Downsizing Retiree', about: 'Recently retired teacher after a quiet garden for herself and a very fluffy cat.', traits: ['cautious', 'chatty'], product: 'conventional', purpose: 'purchase', amountRange: [210_000, 280_000], home: { name: 'Porchlight Cottage', beds: 2, baths: 1, categoryChip: 'Cozy Retreat' } },
+  { names: ['Dev & Anika Sharma', 'Omar & Layla Farouk', 'Tom & Priya Whitaker'], portraitId: 8, age: 31, buyerTypeLabel: 'First-time Homebuyers', about: 'Newlyweds with a shared spreadsheet for everything — including this house hunt.', traits: ['detailOriented', 'prompt'], product: 'conventional', purpose: 'purchase', amountRange: [260_000, 330_000], home: { name: 'Maple Street Colonial', beds: 4, baths: 2, categoryChip: 'Family Home' } },
+  { names: ['Emily Larsen', 'Hannah Brooks', 'Sofia Lindqvist'], portraitId: 9, age: 27, buyerTypeLabel: 'First-time Homebuyer', about: 'Nurse who just signed her first full-time contract and wants a short walk to the hospital.', traits: ['enthusiastic', 'detailOriented'], product: 'fha', purpose: 'purchase', amountRange: [195_000, 235_000], home: { name: 'Rosewood Walk-Up', beds: 2, baths: 1, categoryChip: 'Condo' } },
+  { names: ['Simone Bailey', 'Tasha Okonkwo', 'Vivian Marsh'], portraitId: 10, age: 34, buyerTypeLabel: 'Relocating Professional', about: 'Marketing director moving here for a promotion — she would like the keys before the quarter ends, please.', traits: ['impatient', 'detailOriented'], product: 'conventional', purpose: 'purchase', amountRange: [290_000, 380_000], home: { name: 'Lakeside Loft', beds: 2, baths: 2, categoryChip: 'City Home' } },
+  { names: ['Vernon Hayes', 'Walter Simmons', 'Gregory Okafor'], portraitId: 11, age: 54, buyerTypeLabel: 'Veteran Homebuyer', about: 'Retired Army colonel using his VA benefit for the front porch he has always wanted.', traits: ['prompt', 'detailOriented'], product: 'va', purpose: 'purchase', amountRange: [250_000, 340_000], home: { name: 'Oakwood Craftsman', beds: 3, baths: 2, categoryChip: 'Family Home' } },
+  { names: ['Mark & Elena Rivas', 'Paul & Dana Kowalski', 'Sam & Rita Beaumont'], portraitId: 12, age: 43, buyerTypeLabel: 'Refinancing Homeowners', about: 'Fifteen years in the same house — a lower monthly payment would go straight to the college fund.', traits: ['cautious', 'prompt'], product: 'conventional', purpose: 'refinance', amountRange: [210_000, 320_000], home: { name: 'Their Longtime Home', beds: 3, baths: 2, categoryChip: 'Refinance' } },
+  { names: ['Grant & Chloe Ashford', 'Marcus & Lena Hale', 'Theo & Camille Durand'], portraitId: 13, age: 38, buyerTypeLabel: 'Move-up Buyers', about: 'Selling the starter home and stretching for the view this time.', traits: ['impatient', 'prompt'], product: 'conventional', purpose: 'purchase', amountRange: [320_000, 420_000], home: { name: 'Hilltop Modern', beds: 3, baths: 2, categoryChip: 'Move-up Home' } },
+  { names: ['Ken & June Park', 'Eli & Nora Tran', 'Ben & Aiko Sato'], portraitId: 14, age: 30, buyerTypeLabel: 'First-time Homebuyers', about: 'High-school sweethearts whose corgi has strong opinions about backyards.', traits: ['enthusiastic', 'prompt'], product: 'conventional', purpose: 'purchase', amountRange: [280_000, 350_000], home: { name: 'Meadow Edge Ranch', beds: 4, baths: 3, categoryChip: 'Family Home' } },
 ];
 
 /** Leads dream of homes where you have a presence (GDD §9 expansion loop). */
@@ -86,8 +95,15 @@ export function maybeSpawnLead(state: GameState): void {
   if (!archetype) return;
 
   const serial = Object.keys(state.loans).length + 1;
-  const suffix = Math.floor((serial - 1) / ARCHETYPES.length);
-  const name = suffix > 0 ? `${archetype.name} ${suffix + 1}` : archetype.name;
+  // How many times has this exact portrait already walked in? Repeats get the
+  // next alternate name and a UI color shift so they read as a new neighbor.
+  const variant = Object.values(state.customers).filter(
+    (c) => c.portraitId === archetype.portraitId,
+  ).length;
+  const baseName = archetype.names[0] ?? 'A Friendly Neighbor';
+  const name =
+    archetype.names[variant] ??
+    `${archetype.names[variant % archetype.names.length] ?? baseName} ${Math.floor(variant / archetype.names.length) + 1}`;
   const customerId = `cust-${serial}-${name.toLowerCase().replace(/[^a-z]/g, '')}`;
   const loanId = `LN-2026-${String(serial).padStart(4, '0')}`;
 
@@ -106,6 +122,9 @@ export function maybeSpawnLead(state: GameState): void {
     happinessAtWeekStart: 0,
     trust: rng.int(1, 3),
     portraitSeed: customerId,
+    portraitId: archetype.portraitId,
+    portraitVariant: variant,
+    about: archetype.about,
     dreamHome: {
       name: archetype.home.name,
       neighborhoodId: (() => {
