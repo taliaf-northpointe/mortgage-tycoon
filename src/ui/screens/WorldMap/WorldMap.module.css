@@ -105,6 +105,13 @@
   align-items: stretch;
 }
 
+/* Phones/narrow windows: list, map, and detail stack full-width */
+@media (max-width: 920px) {
+  .body {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* ── List ───────────────────────────────────────────── */
 
 .list {

@@ -130,6 +130,14 @@
   padding: 14px 18px;
 }
 
+/* Phones/narrow windows: category header above its tier cards */
+@media (max-width: 800px) {
+  .categoryRow {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+}
+
 .categoryInfo {
   display: flex;
   align-items: center;

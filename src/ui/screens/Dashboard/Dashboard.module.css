@@ -10,6 +10,57 @@
     'sidebar stage panel';
 }
 
+/* Phones/narrow windows: nav on top, then KPIs, office, and the feed —
+   the page scrolls normally instead of locking to the viewport. */
+@media (max-width: 900px) {
+  .layout {
+    height: auto;
+    min-height: 100vh;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto auto;
+    grid-template-areas:
+      'sidebar'
+      'kpis'
+      'stage'
+      'panel';
+  }
+
+  .sidebar {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 2px;
+    border-right: none;
+    border-bottom: var(--border-soft);
+    padding: 10px 12px;
+  }
+
+  .brand {
+    padding: 0 10px 0 4px;
+  }
+
+  .navItem,
+  .navItemActive {
+    padding: 8px 10px;
+  }
+
+  .sidebarFooter {
+    margin-top: 0;
+    margin-left: auto;
+    flex-direction: row;
+    align-items: center;
+  }
+
+  .panel {
+    border-left: none;
+    border-top: var(--border-soft);
+  }
+
+  .eventList {
+    max-height: 45vh;
+  }
+}
+
 /* ── Sidebar ─────────────────────────────────────────── */
 
 .sidebar {

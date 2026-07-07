@@ -64,6 +64,12 @@
   gap: 10px;
 }
 
+@media (max-width: 700px) {
+  .kpis {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
 .kpi {
   display: flex;
   flex-direction: column;
@@ -170,6 +176,12 @@
   display: grid;
   grid-template-columns: 1.4fr 1fr;
   gap: 20px;
+}
+
+@media (max-width: 700px) {
+  .columns {
+    grid-template-columns: 1fr;
+  }
 }
 
 .highlights {

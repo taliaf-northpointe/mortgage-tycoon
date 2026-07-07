@@ -33,6 +33,14 @@
   box-shadow: var(--shadow-soft);
   padding: 28px 34px;
   width: min(520px, 100%);
+  max-height: calc(100vh - 48px);
+  overflow-y: auto;
+}
+
+@media (max-width: 600px) {
+  .card {
+    padding: 20px 18px;
+  }
 }
 
 .mascotRow {
