@@ -91,15 +91,22 @@ export function maybeSpawnLead(state: GameState): void {
   const rng = mulberry32((state.rngSeed ^ (state.clock.day * 2_654_435_761)) >>> 0);
   if (rng.next() >= chance) return;
 
-  const archetype = ARCHETYPES[rng.int(0, ARCHETYPES.length - 1)];
+  // Everyone gets their moment: a portrait never repeats until the whole
+  // cast has walked in, then the least-seen faces return first — with the
+  // next alternate name so they arrive as a new neighbor.
+  const usageByPortrait = new Map<number, number>(ARCHETYPES.map((a) => [a.portraitId, 0]));
+  for (const c of Object.values(state.customers)) {
+    if (typeof c.portraitId === 'number' && usageByPortrait.has(c.portraitId)) {
+      usageByPortrait.set(c.portraitId, (usageByPortrait.get(c.portraitId) ?? 0) + 1);
+    }
+  }
+  const minUsage = Math.min(...usageByPortrait.values());
+  const freshest = ARCHETYPES.filter((a) => usageByPortrait.get(a.portraitId) === minUsage);
+  const archetype = freshest[rng.int(0, freshest.length - 1)];
   if (!archetype) return;
 
   const serial = Object.keys(state.loans).length + 1;
-  // How many times has this exact portrait already walked in? Repeats get the
-  // next alternate name and a UI color shift so they read as a new neighbor.
-  const variant = Object.values(state.customers).filter(
-    (c) => c.portraitId === archetype.portraitId,
-  ).length;
+  const variant = usageByPortrait.get(archetype.portraitId) ?? 0;
   const baseName = archetype.names[0] ?? 'A Friendly Neighbor';
   const name =
     archetype.names[variant] ??

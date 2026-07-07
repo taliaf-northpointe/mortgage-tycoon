@@ -122,7 +122,7 @@ interface Customer {
   trust: number;                     // 1–5 (fractional internally, bars in UI)
   portraitSeed: string;              // deterministic procedural portrait (fallback)
   portraitId?: number;               // borrower-N.png (Talia's art); optional — old saves keep the drawn fallback
-  portraitVariant?: number;          // 0 = original; 1+ = repeat lead, re-colored in the UI (hue shift)
+  portraitVariant?: number;          // 0 = first appearance; 1+ = repeat lead under the next alternate name
   about?: string;                    // one-line persona from the archetype, shown on the profile
   dreamHome: {
     name: string; neighborhoodId: string; beds: number; baths: number;
@@ -236,7 +236,7 @@ interface DaySummary {
 - **v6 → v7** (M8.1 fix): adds `xpAtDayStart` so the End-of-Day summary reports the whole day (revenue is recorded at the payout source; completions come from the day's events) instead of a rollover-instant diff that always read zero in live play.
 - **v7 → v8** (art sprites): adds `Employee.spriteId` — gender-matched via the shared first-name table, assigned least-used-first so the cast stays distinct.
 - **v9 → v10** (bigger office cast): character sprites 1, 2, and 8 retired; new sprites 9–16 joined the pool. Employees wearing a retired face are re-assigned a gender-matched, least-used one.
-- **v8 → v9** (borrower art): backfills Sarah Chen's `portraitId`/`about`. The customer portrait fields are otherwise optional — new leads get them from their archetype (one persona per borrower portrait, `borrower-2..14.png`; repeats take the next alternate name plus a UI color shift so they read as new people); other pre-v9 customers keep the procedural drawn portrait.
+- **v8 → v9** (borrower art): backfills Sarah Chen's `portraitId`/`about`. The customer portrait fields are otherwise optional — new leads get them from their archetype (one persona per borrower portrait, `borrower-2..14.png`); other pre-v9 customers keep the procedural drawn portrait. Lead spawning cycles the whole cast before any portrait repeats (least-used-first); a repeat arrives under its next alternate name with the art untouched (no tinting — art variety comes from adding more images).
 
 ## 6.1 MortgageGlossary service (v2, GDD §4.1)
 

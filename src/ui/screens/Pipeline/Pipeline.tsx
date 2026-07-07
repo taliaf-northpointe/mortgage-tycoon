@@ -13,7 +13,7 @@ import type { Customer, Loan, LoanStage } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
 import { Confetti } from '../../components/Confetti';
 import { GlossaryTerm } from '../../glossary/GlossaryTerm';
-import { borrowerArtUrl, portraitFilter } from '../../customerArt';
+import { borrowerArtUrl } from '../../customerArt';
 import { initials, moneyCompact, moneyFull } from '../../format';
 import { LoanDetailModal } from './LoanDetailModal';
 import styles from './Pipeline.module.css';
@@ -158,11 +158,7 @@ function LoanCard({
       <div className={styles.cardTop}>
         {customer?.portraitId ? (
           <span className={styles.cardFace}>
-            <img
-              src={borrowerArtUrl(customer.portraitId)}
-              alt=""
-              style={portraitFilter(customer) ? { filter: portraitFilter(customer) } : undefined}
-            />
+            <img src={borrowerArtUrl(customer.portraitId)} alt="" />
           </span>
         ) : (
           <span className={styles.cardAvatar}>{initials(customerName)}</span>

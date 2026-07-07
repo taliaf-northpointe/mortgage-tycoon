@@ -53,7 +53,7 @@ export interface Customer {
   portraitSeed: string;
   /** Talia's borrower art (public/assets/art/borrower-N.png); absent in old saves → drawn fallback. */
   portraitId?: number;
-  /** 0 = original art; 1+ = repeat lead re-colored in the UI to look like a new person. */
+  /** 0 = first appearance; 1+ = repeat lead (arrives under the next alternate name). */
   portraitVariant?: number;
   /** One-line persona ("about them") shown on the Customer Profile. */
   about?: string;

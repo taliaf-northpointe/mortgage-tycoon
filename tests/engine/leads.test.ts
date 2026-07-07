@@ -51,7 +51,7 @@ describe('lead generation (GDD §13 decision 8)', () => {
     expect(spawned.eventLog.some((e) => e.title.startsWith('New lead'))).toBe(true);
   });
 
-  it('every lead is a photo persona; repeat portraits become re-colored new people', () => {
+  it('every lead is a photo persona; the whole cast appears before any repeats', () => {
     // spawn many leads, completing loans as we go so the cap never blocks
     let s = structuredClone(createStarterState(31));
     const seen: Record<number, string[]> = {};
@@ -70,12 +70,15 @@ describe('lead generation (GDD §13 decision 8)', () => {
       (seen[c.portraitId ?? 0] ??= []).push(c.name);
     }
 
+    // round-robin: no portrait is reused until every persona has appeared
+    const counts = Object.values(seen).map((names) => names.length);
+    expect(Object.keys(seen)).toHaveLength(13); // all 13 personas walked in
+    expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1);
+
     // any reused portrait must arrive with a brand-new name (variant persona)
     for (const names of Object.values(seen)) {
       expect(new Set(names).size).toBe(names.length);
     }
-    const repeated = Object.values(seen).find((names) => names.length > 1);
-    expect(repeated).toBeDefined();
   });
 
   it('respects the active-loan cap', () => {

@@ -15,7 +15,7 @@ import type { Customer, GameState, Loan } from '../../../engine/types';
 import { useGameStore } from '../../../store/gameStore';
 import { Button } from '../../components/Button';
 import { GlossaryTerm } from '../../glossary/GlossaryTerm';
-import { borrowerArtUrl, houseArtUrl, portraitFilter } from '../../customerArt';
+import { borrowerArtUrl, houseArtUrl } from '../../customerArt';
 import { moneyFull } from '../../format';
 import styles from './CustomerProfile.module.css';
 
@@ -273,14 +273,9 @@ function encouragement(loan: Loan, owed: number): string {
 /** Talia's borrower art when the customer has one; drawn fallback otherwise. */
 function Portrait({ customer }: { customer: Customer }) {
   if (customer.portraitId) {
-    const filter = portraitFilter(customer);
     return (
       <div className={styles.portraitArt}>
-        <img
-          src={borrowerArtUrl(customer.portraitId)}
-          alt=""
-          style={filter ? { filter } : undefined}
-        />
+        <img src={borrowerArtUrl(customer.portraitId)} alt="" />
       </div>
     );
   }
@@ -309,18 +304,10 @@ function DrawnPortrait({ customer }: { customer: Customer }) {
   );
 }
 
-/** The matching dream-home illustration; repeats get the same color shift as their owner. */
+/** The matching dream-home illustration (House N ↔ Borrower N). */
 function HomeArt({ customer }: { customer: Customer }) {
   if (customer.portraitId) {
-    const filter = portraitFilter(customer);
-    return (
-      <img
-        className={styles.homeArtPhoto}
-        src={houseArtUrl(customer.portraitId)}
-        alt=""
-        style={filter ? { filter } : undefined}
-      />
-    );
+    return <img className={styles.homeArtPhoto} src={houseArtUrl(customer.portraitId)} alt="" />;
   }
   return <DrawnHomeArt seed={customer.portraitSeed} />;
 }
