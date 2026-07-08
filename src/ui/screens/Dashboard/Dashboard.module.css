@@ -129,22 +129,56 @@
 
 .playerCard {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 8px;
   background: var(--color-cream);
   border: var(--border-soft);
   border-radius: var(--radius-md);
   padding: 10px 12px;
 }
 
-.playerCard div {
+.playerRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.playerRow > div {
   display: flex;
   flex-direction: column;
 }
 
-.playerCard span:last-child {
+.playerRow span:last-child {
   font-size: var(--text-caption);
   color: var(--color-cocoa);
+}
+
+/* ── XP toward the next level (playtest 2026-07-08) ──── */
+
+.xpBar {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.xpTrack {
+  height: 7px;
+  border-radius: var(--radius-pill);
+  background: var(--color-sand);
+  overflow: hidden;
+}
+
+.xpFill {
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-honey);
+  transition: width 400ms ease;
+}
+
+.xpLabel {
+  font-size: var(--text-label);
+  color: var(--color-cocoa);
+  text-align: right;
 }
 
 .avatar {

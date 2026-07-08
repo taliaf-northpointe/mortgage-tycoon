@@ -17,7 +17,14 @@ import {
   Users,
 } from 'lucide-react';
 import { audioManager } from '../../../audio/AudioManager';
-import { DAY_END_HOUR, REAL_MS_PER_HOUR, titleForLevel, WEEKDAYS } from '../../../engine/constants';
+import {
+  DAY_END_HOUR,
+  LEVEL_XP_THRESHOLDS,
+  MAX_PLAYER_LEVEL,
+  REAL_MS_PER_HOUR,
+  titleForLevel,
+  WEEKDAYS,
+} from '../../../engine/constants';
 import { DISRUPTION_BY_KIND } from '../../../engine/content/disruptions';
 import { officeStage } from '../../../engine/upgrades';
 import { useGameStore } from '../../../store/gameStore';
@@ -129,13 +136,16 @@ export function Dashboard({ speed, onSpeedChange, onNavigate, onExitToMenu, onRe
 
         <div className={styles.sidebarFooter}>
           <div className={styles.playerCard}>
-            <span className={styles.avatar}>{initials(meta.playerName)}</span>
-            <div>
-              <strong>{meta.playerName}</strong>
-              <span>
-                {titleForLevel(stats.level)} · Lv {stats.level}
-              </span>
+            <div className={styles.playerRow}>
+              <span className={styles.avatar}>{initials(meta.playerName)}</span>
+              <div>
+                <strong>{meta.playerName}</strong>
+                <span>
+                  {titleForLevel(stats.level)} · Lv {stats.level}
+                </span>
+              </div>
             </div>
+            <PlayerXpBar level={stats.level} xp={stats.xp} />
           </div>
           <Button variant="ghost" onClick={onExitToMenu}>
             Save & Menu
@@ -269,6 +279,37 @@ function Kpi({ icon, label, value }: { icon: React.ReactNode; label: React.React
         <span className={styles.kpiLabel}>{label}</span>
         <strong className={styles.kpiValue}>{value}</strong>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Progress toward the next career level (playtest 2026-07-08 — the player
+ * should always see how close the next level-up is).
+ */
+function PlayerXpBar({ level, xp }: { level: number; xp: number }) {
+  const floor = LEVEL_XP_THRESHOLDS[level] ?? 0;
+  const goal = LEVEL_XP_THRESHOLDS[level + 1];
+  const maxed = level >= MAX_PLAYER_LEVEL || goal === undefined;
+  const into = Math.max(0, xp - floor);
+  const need = maxed ? 0 : Math.max(1, (goal ?? floor) - floor);
+  const pct = maxed ? 100 : Math.min(100, (into / need) * 100);
+
+  return (
+    <div
+      className={styles.xpBar}
+      title={
+        maxed
+          ? 'Top of the ladder — Mortgage Mogul!'
+          : `${(need - into).toLocaleString('en-US')} XP to Level ${level + 1}`
+      }
+    >
+      <div className={styles.xpTrack} role="progressbar" aria-valuenow={Math.round(pct)} aria-valuemin={0} aria-valuemax={100}>
+        <div className={styles.xpFill} style={{ width: `${pct}%` }} />
+      </div>
+      <span className={styles.xpLabel}>
+        {maxed ? 'MAX level 🎉' : `${into.toLocaleString('en-US')} / ${need.toLocaleString('en-US')} XP`}
+      </span>
     </div>
   );
 }
