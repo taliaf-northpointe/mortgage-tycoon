@@ -86,13 +86,13 @@ describe('just-in-time trainings (playtest 2026-07-07)', () => {
     // A jump to level 15 queues every unlock passed along the way, in order —
     // an existing save catching up sees each pop-up once.
     seen.stats.level = 15;
-    expect(dueTraining(seen)?.key).toBe('loanOfficerAssistant'); // level 8, still unseen
-    let queued = markTrainingSeen(seen, 'loanOfficerAssistant');
-    expect(dueTraining(queued)?.key).toBe('underwritingRedo'); // level 10
-    queued = markTrainingSeen(queued, 'underwritingRedo');
-    expect(dueTraining(queued)?.key).toBe('compliance'); // level 15…
-    queued = markTrainingSeen(queued, 'compliance');
-    expect(dueTraining(queued)?.key).toBe('branchManager'); // …then its level-15 twin
+    let queued = seen;
+    const expectedOrder = ['loanOfficerAssistant', 'upgradeTiers45', 'underwritingRedo', 'compliance', 'branchManager'];
+    for (const key of expectedOrder) {
+      expect(dueTraining(queued)?.key).toBe(key);
+      queued = markTrainingSeen(queued, key);
+    }
+    expect(dueTraining(queued)).toBeNull(); // caught up
   });
 
   it('market trainings fire on the first boom or spike', () => {

@@ -216,15 +216,17 @@ Events fire during the day and land in the notification feed (Dashboard, right p
 
 ## 7. Upgrades
 
-Five categories × five tiers = **25 upgrades**, displayed as left-to-right progression trees with three states: **Purchased** (check), **Available** (cost shown), **Locked** (lock icon; previous tier required). Header shows total progress ("11 / 25").
+Five categories × seven tiers = **35 upgrades** (tiers 6–7 added 2026-07-08 with the Office 4 art), displayed as left-to-right progression trees with three states: **Purchased** (check), **Available** (cost shown), **Locked** (lock icon; previous tier required). Header shows total progress ("11 / 35"). Level gates: tiers 1–3 at level 3, tiers 4–5 at level 8, tiers 6–7 at level 18.
 
-| Category | Theme line | Tier 1 → 5 (mockup names & coin costs) |
+| Category | Theme line | Tier 1 → 7 (names & coin costs) |
 |---|---|---|
-| Office Improvements | "Make your workspace cozy" | Cozy Chairs → Better Lighting → Coffee Machine (1,200) → Corner Office (3,500) → Executive Suite (12,000) |
-| Staff Training | "Level up your team" | Basic Skills → Advanced Training → Leadership → Specialization (2,400) → Master Class (6,800) |
-| Marketing | "Attract new customers" | Flyers → Local Ads (1,600) → Social Media (2,200) → TV Spots (5,400) → Brand Voice (9,000) |
-| Technology | "Modernize the office" | Modern PCs → Fast Internet → CRM System (3,200) → AI Assistant (7,500) → Auto Approvals (14,000) |
-| Customer Experience | "Delight your clients" | Welcome Kit → Coffee Bar (1,800) → Concierge (4,200) → Priority Line (6,500) → VIP Lounge (11,000) |
+| Office Improvements | "Make your workspace cozy" | Cozy Chairs → Better Lighting → Coffee Machine (1,200) → Corner Office (3,500) → Executive Suite (12,000) → Garden Atrium (18,000) → Skyline Suite (30,000) |
+| Staff Training | "Level up your team" | Basic Skills → Advanced Training → Leadership → Specialization (2,400) → Master Class (6,800) → Mentor Program (12,000) → Industry Conference (20,000) |
+| Marketing | "Attract new customers" | Flyers → Local Ads (1,600) → Social Media (2,200) → TV Spots (5,400) → Brand Voice (9,000) → Skyline Billboard (16,000) → Hometown Sponsor (26,000) |
+| Technology | "Modernize the office" | Modern PCs → Fast Internet → CRM System (3,200) → AI Assistant (7,500) → Auto Approvals (14,000) → Digital Closings (21,000) → Smart Pipeline (32,000) |
+| Customer Experience | "Delight your clients" | Welcome Kit → Coffee Bar (1,800) → Concierge (4,200) → Priority Line (6,500) → VIP Lounge (11,000) → Homewarming Crew (17,000) → Anniversary Club (25,000) |
+
+Office tiers renovate the room itself (Talia's staged art): 0–1 tiers → office 1, 2–3 → office 2, 4–5 → office 3, 6–7 → **office 4, the skyline penthouse**.
 
 **Upgrade detail popover:** icon, name, `Category · Tier N`, one-line flavor description, 2–3 quantified benefit chips (e.g. `+15% new leads`, `+8% reputation`, `+5% happiness`), and a purchase button with cost.
 

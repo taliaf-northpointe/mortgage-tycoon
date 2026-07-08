@@ -10,6 +10,7 @@ const STAGE_CANVAS: Record<number, { w: number; h: number }> = {
   1: { w: 1323, h: 1189 },
   2: { w: 1316, h: 1195 },
   3: { w: 1388, h: 1133 },
+  4: { w: 1402, h: 1122 },
 };
 
 /**

@@ -1,7 +1,8 @@
 .layout {
   height: 100vh;
   display: grid;
-  grid-template-columns: 230px 1fr 330px;
+  /* Lean side columns — the office scene is the star of the screen. */
+  grid-template-columns: 210px minmax(0, 1fr) 300px;
   /* minmax(0, 1fr): a long event feed must scroll inside its panel, never
      stretch the row — otherwise the office scene ends up below the fold */
   grid-template-rows: auto minmax(0, 1fr);
@@ -296,14 +297,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 8px 12px;
   overflow: hidden;
 }
 
+/* Fill whatever room the stage offers — the viewBox keeps the aspect ratio,
+   so on big monitors the office simply gets gloriously large. */
 .scene {
   width: 100%;
   height: 100%;
-  max-height: 640px;
 }
 
 .deskLabel {

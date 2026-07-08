@@ -36,6 +36,13 @@ export const TRAININGS: TrainingDef[] = [
     trigger: { level: 8 },
   },
   {
+    key: 'upgradeTiers45',
+    title: 'Upgrade tiers 4–5 unlocked 🛋️',
+    body: 'The next shelf of the Upgrades tree just opened: tiers 4 and 5 in every category — bigger morale, faster processing, more leads, deeper trust. Office tiers keep renovating the room itself.',
+    tip: 'Two more office tiers earn the next room. Your team notices.',
+    trigger: { level: 8 },
+  },
+  {
     key: 'underwritingRedo',
     title: 'Underwriting just got pickier 📋',
     body: 'From now on, a loan can get a “yes, but…” — one document expires and must be resubmitted, sending the file back through Document Collection for a second look. It only ever happens once per loan.',
@@ -62,6 +69,13 @@ export const TRAININGS: TrainingDef[] = [
     body: 'Some purchase shoppers now arrive asking for Jumbo loans — amounts far above the usual, with the biggest closing fees in the game. Bigger balance, pickier file: these customers expect white-glove service.',
     tip: 'The fee is a percentage — a $700,000 closing pays like three ordinary ones.',
     trigger: { level: 16 },
+  },
+  {
+    key: 'upgradeTiers67',
+    title: 'Upgrade tiers 6–7 unlocked 🏙️',
+    body: 'The top of the Upgrades tree is open: tiers 6 and 7 in every category. Max out the office track and you earn the Skyline Suite — floor-to-ceiling windows, city lights, your name on the door.',
+    tip: 'The final office renovation is the best morale in the game. Worth every coin.',
+    trigger: { level: 18 },
   },
   {
     key: 'walkaways',

@@ -445,8 +445,11 @@ export const HAPPY_CUSTOMER_MIN = 95; // happiness at closing
 
 /* ── M7: Upgrades (GDD §7) ────────────────────────────────────────── */
 
-export const UPGRADES_SCREEN_LEVEL = 3; // Branch Manager unlocks the screen (GDD §10)
-export const UPGRADES_TIER45_LEVEL = 5; // Regional Director unlocks Tiers 4–5
+export const UPGRADES_SCREEN_LEVEL = 3; // unlocks the Upgrades screen (GDD §10)
+/** Tiers 4–5 moved from level 5 to 8 (playtest 2026-07-07 — spread the ladder). */
+export const UPGRADES_TIER45_LEVEL = 8;
+/** Tiers 6–7 (2026-07-08): the late-game shelf, matching Office stage 4. */
+export const UPGRADES_TIER67_LEVEL = 18;
 
 /** Effect rates per purchased tier in each category (GDD §7 effect mapping) */
 export const TRAINING_GAIN_BONUS_PER_TIER = 0.2; // training sessions teach 20% more per tier
@@ -455,8 +458,8 @@ export const TECH_SPEED_BONUS_PER_TIER = 0.05; // stage processing speed
 export const MARKETING_LEAD_BONUS_PER_TIER = 0.05; // lead chance
 export const MARKETING_REPUTATION_PER_PURCHASE = 2; // instant on purchase
 export const CX_TRUST_BONUS_PER_TIER = 0.05; // extra trust per Contact
-/** Office upgrade tiers unlock nicer rooms (Talia's staged art): 0–1 → 1, 2–3 → 2, 4–5 → 3. */
-export const OFFICE_ART_STAGES = 3;
+/** Office upgrade tiers unlock nicer rooms (Talia's staged art): 0–1 → 1, 2–3 → 2, 4–5 → 3, 6–7 → 4. */
+export const OFFICE_ART_STAGES = 4;
 export const CX_HAPPINESS_BONUS_PER_2_TIERS = 1; // extra happiness per stage advance
 export const OFFICE_MORALE_BONUS_PER_2_TIERS = 1; // extra daily employee recovery
 

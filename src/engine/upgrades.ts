@@ -7,6 +7,7 @@ import {
   OFFICE_ART_STAGES,
   UPGRADES_SCREEN_LEVEL,
   UPGRADES_TIER45_LEVEL,
+  UPGRADES_TIER67_LEVEL,
 } from './constants';
 import { UPGRADES, UPGRADES_BY_ID } from './content/upgrades';
 import type { UpgradeCategory } from './content/upgrades';
@@ -39,7 +40,7 @@ export function totalPurchased(state: GameState): number {
 /**
  * Which office room the player has earned (GDD §7 — the office visibly grows).
  * Office-category tiers map to Talia's staged art: 0–1 tiers → stage 1,
- * 2–3 → stage 2, 4–5 → stage 3 (office-room-N.png + desk-N.png).
+ * 2–3 → stage 2, 4–5 → stage 3, 6–7 → stage 4 (office-room-N.png + desk-N.png).
  */
 export function officeStage(state: GameState): number {
   return Math.min(OFFICE_ART_STAGES, 1 + Math.floor(tiersOwned(state, 'office') / 2));
@@ -53,8 +54,10 @@ export function purchaseBlockedReason(state: GameState, upgradeId: string): stri
   const status = state.upgrades[upgradeId];
   if (status === 'purchased') return 'Already yours!';
   if (status !== 'available') return 'Buy the previous tier first.';
+  if (def.tier >= 6 && state.stats.level < UPGRADES_TIER67_LEVEL)
+    return `Tiers 6–7 unlock at Level ${UPGRADES_TIER67_LEVEL}.`;
   if (def.tier >= 4 && state.stats.level < UPGRADES_TIER45_LEVEL)
-    return `Tiers 4–5 unlock at Level ${UPGRADES_TIER45_LEVEL} (Regional Director).`;
+    return `Tiers 4–5 unlock at Level ${UPGRADES_TIER45_LEVEL}.`;
   if (state.currencies.coins < def.cost) return 'Not enough coins yet.';
   return null;
 }

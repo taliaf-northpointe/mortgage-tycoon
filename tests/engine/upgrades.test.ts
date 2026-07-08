@@ -21,11 +21,11 @@ function atLevel(level: number): GameState {
 }
 
 describe('upgrade tree (GDD §7)', () => {
-  it('defines exactly 25 upgrades: 5 categories × tiers 1–5', () => {
-    expect(UPGRADES).toHaveLength(25);
+  it('defines exactly 35 upgrades: 5 categories × tiers 1–7', () => {
+    expect(UPGRADES).toHaveLength(35);
     const states = initialUpgradeStates();
     expect(Object.values(states).filter((v) => v === 'available')).toHaveLength(5);
-    expect(Object.values(states).filter((v) => v === 'locked')).toHaveLength(20);
+    expect(Object.values(states).filter((v) => v === 'locked')).toHaveLength(30);
   });
 
   it('purchasing unlocks the next tier and spends coins', () => {
@@ -38,7 +38,7 @@ describe('upgrade tree (GDD §7)', () => {
     expect(totalPurchased(s)).toBe(1);
   });
 
-  it('is level-gated: no purchases below Level 3, Tiers 4–5 need Level 5', () => {
+  it('is level-gated: Level 3 for the screen, 8 for tiers 4–5, 18 for tiers 6–7', () => {
     const low = atLevel(1);
     expect(purchaseBlockedReason(low, 'cozyChairs')).toContain(`Level ${UPGRADES_SCREEN_LEVEL}`);
     expect(purchaseUpgrade(low, 'cozyChairs')).toBe(low);
@@ -46,13 +46,21 @@ describe('upgrade tree (GDD §7)', () => {
     let mid = atLevel(3);
     for (const id of ['cozyChairs', 'betterLighting', 'coffeeMachine']) mid = purchaseUpgrade(mid, id);
     expect(mid.upgrades['cornerOffice']).toBe('available');
-    expect(purchaseBlockedReason(mid, 'cornerOffice')).toContain('Level 5');
+    expect(purchaseBlockedReason(mid, 'cornerOffice')).toContain('Level 8');
     expect(purchaseUpgrade(mid, 'cornerOffice')).toBe(mid);
 
     let high = structuredClone(mid);
-    high.stats.level = 5;
+    high.stats.level = 8;
     high = purchaseUpgrade(high, 'cornerOffice');
     expect(high.upgrades['cornerOffice']).toBe('purchased');
+
+    high = purchaseUpgrade(high, 'executiveSuite');
+    expect(high.upgrades['gardenAtrium']).toBe('available');
+    expect(purchaseBlockedReason(high, 'gardenAtrium')).toContain('Level 18');
+    high.stats.level = 18;
+    high = purchaseUpgrade(high, 'gardenAtrium');
+    high = purchaseUpgrade(high, 'skylineSuite');
+    expect(high.upgrades['skylineSuite']).toBe('purchased'); // the whole office track
   });
 
   it('cannot skip tiers or buy without coins', () => {
