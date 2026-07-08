@@ -170,7 +170,7 @@ export interface GlossaryProgress {
 
 export interface GameState {
   meta: {
-    saveVersion: 12;
+    saveVersion: 13;
     playerName: string;
     officeName: string;
     createdAt: string;

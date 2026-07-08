@@ -61,13 +61,64 @@ describe('wall notes never repeat (playtest 2026-07-07)', () => {
     expect(new Set(notes).size).toBe(notes.length); // all distinct
   });
 
-  it('a truly full wall still never repeats, thanks to the named fallback', () => {
+  it('a truly full wall still never repeats, thanks to the named fallbacks', () => {
     const used = new Set<string>();
-    for (let n = 1; n <= 25; n++) {
+    for (let n = 1; n <= 80; n++) {
       const note = thankYouNote({ portraitId: 17, portraitSeed: `cust-${n}`, name: `Family No. ${n}` }, used);
       expect(used.has(note)).toBe(false);
       used.add(note);
     }
+  });
+
+  it("a solo buyer never signs a 'we' note; a couple never signs an 'I' note", () => {
+    const used = new Set<string>();
+    // portrait 23 (Dante, solo) — drain many notes and audit the pronouns
+    for (let n = 1; n <= 30; n++) {
+      const note = thankYouNote({ portraitId: 23, portraitSeed: `solo-${n}`, name: `Solo No. ${n}` }, used);
+      expect(note).not.toMatch(/\b(we|our|us|ours)\b/i);
+      used.add(note);
+    }
+    // portrait 17 (a couple) — their notes never speak as a single "I/my"
+    const coupleUsed = new Set<string>();
+    for (let n = 1; n <= 30; n++) {
+      const note = thankYouNote({ portraitId: 17, portraitSeed: `duo-${n}`, name: `Duo No. ${n}` }, coupleUsed);
+      expect(note).not.toMatch(/\bI\b|\bmy\b|\bMy\b/);
+      coupleUsed.add(note);
+    }
+  });
+
+  it('v12 → v13 rewrites the repetitive kettle-template notes', () => {
+    const base = createStarterState() as unknown as Record<string, unknown>;
+    const save = structuredClone(base);
+    (save['meta'] as Record<string, unknown>)['saveVersion'] = 12;
+    const kettle = (n: string) => `The keys are ours and the kettle is on — come by any time! — ${n}`;
+    save['memoryWall'] = ['Ada Lane', 'Bo Reyes', 'Cy Marsh'].map((name, i) => ({
+      loanId: `LN-${i}`, customerName: name, portraitId: 9, portraitSeed: `seed-${i}`, houseName: 'H',
+      neighborhoodId: 'oldTown', product: 'fha', purpose: 'purchase', amount: 1, closingDay: i, season: 'spring',
+      note: kettle(name),
+    }));
+    const migrated = parseSave(JSON.stringify(save));
+    for (const page of migrated.memoryWall) {
+      expect(page.note).not.toContain('the kettle is on — come by any time');
+    }
+    const notes = migrated.memoryWall.map((p) => p.note);
+    expect(new Set(notes).size).toBe(notes.length);
+  });
+
+  it('v12 → v13 backfills upgrade tiers added after the save was created', () => {
+    const base = createStarterState() as unknown as Record<string, unknown>;
+    const save = structuredClone(base);
+    (save['meta'] as Record<string, unknown>)['saveVersion'] = 12;
+    // a pre-tier-6 save: full office track owned, new ids entirely absent
+    const upgrades = save['upgrades'] as Record<string, string>;
+    delete upgrades['gardenAtrium'];
+    delete upgrades['skylineSuite'];
+    for (const id of ['cozyChairs', 'betterLighting', 'coffeeMachine', 'cornerOffice', 'executiveSuite']) {
+      upgrades[id] = 'purchased';
+    }
+    const migrated = parseSave(JSON.stringify(save));
+    expect(migrated.upgrades['gardenAtrium']).toBe('available'); // tier 5 owned → 6 opens
+    expect(migrated.upgrades['skylineSuite']).toBe('locked'); // still needs tier 6
   });
 
   it('v11 → v12 migration rewrites duplicated notes on existing walls', () => {
@@ -79,7 +130,7 @@ describe('wall notes never repeat (playtest 2026-07-07)', () => {
       { loanId: 'LN-2', customerName: 'Beck & Aria Foster', portraitId: 17, portraitSeed: 'b', houseName: 'H', neighborhoodId: 'oldTown', product: 'fha', purpose: 'purchase', amount: 1, closingDay: 2, season: 'spring', note: 'Same words twice.' },
     ];
     const migrated = parseSave(JSON.stringify(save));
-    expect(migrated.meta.saveVersion).toBe(12);
+    expect(migrated.meta.saveVersion).toBe(13);
     const notes = migrated.memoryWall.map((page) => page.note);
     expect(notes[0]).toBe('Same words twice.'); // the first keeps its words
     expect(notes[1]).not.toBe('Same words twice.'); // the copy finds its own voice

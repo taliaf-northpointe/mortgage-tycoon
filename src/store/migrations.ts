@@ -6,9 +6,10 @@
 
 import { genderForName, RETIRED_SPRITES, spritesForGender } from '../engine/content/characterSprites';
 import { thankYouNote } from '../engine/content/memoryWall';
+import { UPGRADES } from '../engine/content/upgrades';
 import { initialUpgradeStates } from '../engine/upgrades';
 
-export const CURRENT_SAVE_VERSION = 12;
+export const CURRENT_SAVE_VERSION = 13;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -324,6 +325,55 @@ function migrateV11toV12(data: Record<string, unknown>): Record<string, unknown>
   return next;
 }
 
+/**
+ * v12 → v13 (upgrade tiers 6–7, 2026-07-08): saves from before the tree grew
+ * don't have entries for the new upgrade ids at all — an absent entry reads
+ * as "buy the previous tier first" even with the whole track purchased.
+ * Backfill every missing upgrade generically: available when its previous
+ * tier is already owned (or it's tier 1), locked otherwise — so this same
+ * migration pattern covers any future tree growth too.
+ */
+function migrateV12toV13(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+  const upgrades = (next['upgrades'] ?? {}) as Record<string, string>;
+  for (const def of UPGRADES) {
+    if (upgrades[def.id]) continue;
+    const previous = UPGRADES.find((u) => u.category === def.category && u.tier === def.tier - 1);
+    upgrades[def.id] =
+      def.tier === 1 || (previous && upgrades[previous.id] === 'purchased') ? 'available' : 'locked';
+  }
+  next['upgrades'] = upgrades;
+
+  // Playtest 2026-07-08: full walls fell back to one "keys and kettle"
+  // template — unique strings, identical sentences. Re-pick every one of
+  // those from the (much larger) pool so no two cards read alike.
+  const wall = Array.isArray(next['memoryWall'])
+    ? (next['memoryWall'] as Record<string, unknown>[])
+    : [];
+  const used = new Set<string>();
+  for (const page of wall) {
+    if (!page || typeof page !== 'object') continue;
+    let note = typeof page['note'] === 'string' ? page['note'] : '';
+    if (!note || used.has(note) || note.startsWith('The keys are ours and the kettle is on')) {
+      note = thankYouNote(
+        {
+          portraitId: typeof page['portraitId'] === 'number' ? page['portraitId'] : undefined,
+          portraitSeed: String(page['portraitSeed'] ?? page['loanId'] ?? 'someone'),
+          name: typeof page['customerName'] === 'string' ? page['customerName'] : undefined,
+        },
+        used,
+      );
+      page['note'] = note;
+    }
+    used.add(note);
+  }
+
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['saveVersion'] = 13;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
   2: migrateV2toV3,
@@ -336,6 +386,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   9: migrateV9toV10,
   10: migrateV10toV11,
   11: migrateV11toV12,
+  12: migrateV12toV13,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

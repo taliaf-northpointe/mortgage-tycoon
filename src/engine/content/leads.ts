@@ -53,8 +53,8 @@ interface Archetype {
   home: { name: string; beds: number; baths: number; categoryChip: string };
 }
 
-/** What kind of household each portrait shows — drives generated names. */
-const PORTRAIT_KIND: Record<number, 'f' | 'm' | 'couple' | 'family'> = {
+/** What kind of household each portrait shows — drives generated names AND note voice (we vs. I). */
+export const PORTRAIT_KIND: Record<number, 'f' | 'm' | 'couple' | 'family'> = {
   2: 'f', 3: 'f', 4: 'm', 5: 'family', 6: 'couple', 7: 'f', 8: 'couple', 9: 'f',
   10: 'f', 11: 'm', 12: 'couple', 13: 'couple', 14: 'couple', 15: 'couple',
   16: 'family', 17: 'couple', 18: 'couple', 19: 'couple', 20: 'couple',

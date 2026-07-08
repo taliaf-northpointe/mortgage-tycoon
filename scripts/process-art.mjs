@@ -92,6 +92,31 @@ function cropDeskRows(png, widthRatio = 0.7) {
   return out;
 }
 
+/**
+ * Normalize a bust sprite onto a uniform canvas (2026-07-08): every character
+ * renders at the same size behind a desk regardless of how much torso the
+ * source art kept. Content anchors at the top (heads align); anything past
+ * the target height is cut with a soft alpha fade; shorter busts just get
+ * transparent padding below.
+ */
+function normalizeBust(png, targetH = 180) {
+  const { width, height } = png;
+  if (height === targetH) return png;
+  const out = new PNG({ width, height: targetH });
+  PNG.bitblt(png, out, 0, 0, width, Math.min(height, targetH), 0, 0);
+  if (height > targetH) {
+    const fade = Math.min(26, targetH);
+    for (let y = targetH - fade; y < targetH; y++) {
+      const g = (targetH - y) / fade;
+      for (let x = 0; x < width; x++) {
+        const i = idx(out, x, y);
+        out.data[i + 3] = Math.round(out.data[i + 3] * g);
+      }
+    }
+  }
+  return out;
+}
+
 /** Trim transparent margins. */
 function trim(png, pad = 4) {
   const { width, height, data } = png;
@@ -172,7 +197,9 @@ const RETIRED_CHARACTERS = new Set([1, 2, 8]);
 for (let n = 1; n <= 30; n++) {
   const src = `Character ${n}.png`;
   if (RETIRED_CHARACTERS.has(n) || !existsSync(join(ROOT, src))) continue;
-  save(`char-${n}.png`, resize(trim(cropDeskRows(stripBackground(load(src), 34))), 300));
+  // normalizeBust: everyone lands on the same 300×180 canvas so the office
+  // scene renders every face at one consistent size (2026-07-08 playtest).
+  save(`char-${n}.png`, normalizeBust(resize(trim(cropDeskRows(stripBackground(load(src), 34))), 300)));
 }
 
 for (let n = 1; n <= 30; n++) {
