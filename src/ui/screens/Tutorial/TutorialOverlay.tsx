@@ -115,10 +115,10 @@ const STEPS: TutorialStep[] = [
   },
   {
     title: 'The road ahead 📈',
-    body: 'Your career climbs through thirty levels and the game grows with you: more leads each level, more room in the pipeline, and a pop quiz on a mortgage term every fifth level (+150 XP for a correct answer). Mastery invites adversity — from level 10 underwriting can bounce a loan back for a resubmitted document, and from level 20 a neglected customer will walk away. At level 15, Compliance unlocks: hire one before the level-20 audit and you pass with honors; face the auditors without one and your reputation pays.',
+    body: 'Your career climbs through thirty levels and the game grows with you: more leads each level, more room in the pipeline, and a pop quiz on a mortgage term every fifth level (+150 XP). Mastery invites adversity — from level 10 underwriting can bounce a loan back, from level 20 a neglected customer will walk away, and the level-20 audit goes far better with Compliance (unlocks at 15) on staff. Keep watching the morning news, too: rate lows spark refi booms, spikes scare shoppers off — and new loan products join your shelf as you rise: Jumbo at 16, Construction at 22, USDA at 26.',
     tips: [
       'Reading any term in the Learning Center earns +10 XP — knowledge is career fuel.',
-      'The audit only happens once. Be ready for it.',
+      'Construction loans take longer at every stage, but they are the biggest closings in the game.',
     ],
     highlight: 'nav-learning',
   },

@@ -85,11 +85,14 @@ The full journey shown in glossary trackers (and the Customer screen journey tra
 
 **Status tag vocabulary:** `Missing 2 docs`, `Ready`, `Appraisal ordered`, `Title review`, `Rate lock`, `Closed`.
 
-**Loan products (3) × purpose (2) at launch — restricted by design:**
+**Loan products × purpose (2) — three at launch, three more as career unlocks (2026-07-07):**
 - **Conventional** — the standard product; Purchase or Refinance.
 - **FHA** — lower down payments, popular with first-time buyers (Sarah Chen's loan). Purchase or Refinance.
 - **VA** — for veterans and service members; famously low/no down payment. Purchase or Refinance.
-- Purposes: **Purchase** and **Refinance** only. No investment/jumbo/cash-out complexity at launch.
+- **Jumbo** *(unlocks level 16)* — above-conforming amounts (~2.6× an archetype's range); pickier files, the biggest fees. Purchase shoppers may arrive asking for one.
+- **Construction** *(unlocks level 22)* — the home isn't built yet: every stage takes 1.5× the working time, the dream-home chip reads "Custom Build," and the closing is the largest payday in the game.
+- **USDA** *(unlocks level 26)* — modest rural loans (~0.75× amounts) for the buyers the big programs miss.
+- Purposes: **Purchase** and **Refinance** only. Specialty products arrive as a twist on purchase leads (35% chance once unlocked) — no new archetypes or portraits needed.
 
 **Pipeline summary metrics (top of Pipeline screen):** Total Loans, Total Volume ($), Avg. Time in Pipeline (days), Conversion Rate (%) — each with a delta vs. prior period.
 

@@ -16,7 +16,6 @@ import {
   REPUTATION_TRUST_FACTOR,
   REQUEST_NAG_HAPPINESS_COST,
   STAGE_DISPLAY_NAME,
-  STAGE_HOURS_REQUIRED,
   TRUST_MAX,
   TUTORIAL_RESEARCH,
   TUTORIAL_XP,
@@ -26,7 +25,7 @@ import { checkLevelUp } from './economy';
 import { getEntry } from './content/glossary';
 import { spawnReferralLead } from './content/leads';
 import { tiersOwned } from './upgrades';
-import { missingDocs, unapprovedDocs } from './loans';
+import { missingDocs, stageHoursRequired, unapprovedDocs } from './loans';
 import { advanceLoanStage, missingDocsTag } from './tick';
 import type { DocumentKey, GameEvent, GameState } from './types';
 
@@ -162,8 +161,8 @@ export function moveBlockedReason(state: GameState, loanId: string): string | nu
   // The early stages are conversations — your click IS the work (playtest
   // 2026-07-07). Waiting periods only bind from Processing onward.
   if (MANUAL_MOVE_INSTANT_STAGES.includes(loan.stage)) return null;
-  if (loan.progressHours < STAGE_HOURS_REQUIRED[loan.stage]) {
-    const left = Math.ceil(STAGE_HOURS_REQUIRED[loan.stage] - loan.progressHours);
+  if (loan.progressHours < stageHoursRequired(loan)) {
+    const left = Math.ceil(stageHoursRequired(loan) - loan.progressHours);
     return `Still in the works — about ${left}h of ${STAGE_DISPLAY_NAME[loan.stage]} to go.`;
   }
   return null;

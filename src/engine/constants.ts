@@ -143,13 +143,59 @@ export const STAGE_HOURS_REQUIRED: Record<LoanStage, number> = {
 export const PROCESSING_APPRAISAL_HOURS = 3; // appraisal comes back
 export const PROCESSING_TITLE_HOURS = 6; // title review wraps (== stage total)
 
-/** GDD §3 v2 — loan products & purposes (restricted set) */
-export const LOAN_PRODUCTS: readonly LoanProduct[] = ['conventional', 'fha', 'va'];
+/** GDD §3 v2 — loan products & purposes; specialty products join late-game (2026-07-07) */
+export const LOAN_PRODUCTS: readonly LoanProduct[] = [
+  'conventional',
+  'fha',
+  'va',
+  'jumbo',
+  'construction',
+  'usda',
+];
 export const LOAN_PRODUCT_LABEL: Record<LoanProduct, string> = {
   conventional: 'Conventional',
   fha: 'FHA',
   va: 'VA',
+  jumbo: 'Jumbo',
+  construction: 'Construction',
+  usda: 'USDA',
 };
+
+/**
+ * Late-game specialty products (playtest 2026-07-07 — levels 15+ needed more
+ * to look forward to). Once unlocked, some purchase shoppers arrive asking
+ * for them instead of their usual product.
+ */
+export const SPECIALTY_PRODUCTS: readonly LoanProduct[] = ['jumbo', 'construction', 'usda'];
+export const PRODUCT_UNLOCK_LEVEL: Partial<Record<LoanProduct, number>> = {
+  jumbo: 16,
+  construction: 22,
+  usda: 26,
+};
+/** Chance a purchase lead arrives wanting an unlocked specialty product. */
+export const PRODUCT_TWIST_CHANCE = 0.35;
+/** Specialty products scale the archetype's loan amount (jumbo = the big leagues). */
+export const PRODUCT_AMOUNT_FACTOR: Partial<Record<LoanProduct, number>> = {
+  jumbo: 2.6,
+  construction: 1.5,
+  usda: 0.75,
+};
+/** Construction builds take longer at every stage — draws, inspections, weather. */
+export const PRODUCT_TIME_FACTOR: Partial<Record<LoanProduct, number>> = {
+  construction: 1.5,
+};
+
+/**
+ * Market moods (playtest 2026-07-07): the drifting rate makes headlines. A
+ * rate low sparks a refi boom (more shoppers); a spike spooks them (fewer).
+ * Each mood lasts a few days, then a quiet cooldown before the next headline.
+ */
+export const REFI_BOOM_RATE = 5.4; // rate at or below → boom
+export const RATE_SPIKE_RATE = 7.6; // rate at or above → spike
+export const MARKET_MOOD_DAYS = 5;
+export const MARKET_COOLDOWN_DAYS = 7;
+export const REFI_BOOM_LEAD_BONUS = 0.25; // added to the daily lead chance
+export const RATE_SPIKE_LEAD_PENALTY = 0.3; // subtracted from it
 export const LOAN_PURPOSE_LABEL: Record<LoanPurpose, string> = {
   purchase: 'Purchase',
   refinance: 'Refinance',

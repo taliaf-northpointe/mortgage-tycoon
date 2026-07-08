@@ -19,8 +19,14 @@ import {
   LOAN_PRODUCT_LABEL,
   MARKETING_LEAD_BONUS_PER_TIER,
   MAX_ACTIVE_LOANS,
+  PRODUCT_AMOUNT_FACTOR,
+  PRODUCT_TWIST_CHANCE,
+  PRODUCT_UNLOCK_LEVEL,
   RATE_LEAD_SENSITIVITY,
+  RATE_SPIKE_LEAD_PENALTY,
+  REFI_BOOM_LEAD_BONUS,
   REPUTATION_TRUST_THRESHOLD,
+  SPECIALTY_PRODUCTS,
   STARTING_INTEREST_RATE,
   WARM_OPENING_LOANS,
 } from '../constants';
@@ -211,8 +217,15 @@ export function maybeSpawnLead(state: GameState): void {
     Math.floor(state.stats.level / 2) * LOAN_CAP_PER_2_LEVELS;
   if (activeLoans >= loanCap) return;
 
-  // Marketing upgrades, open branches, low interest rates, and a growing
-  // reputation all bring more shoppers (GDD §7/§8/§9).
+  // Marketing upgrades, open branches, low interest rates, a growing
+  // reputation — and the market's mood — all move the shopper count
+  // (GDD §7/§8/§9; market moods playtest 2026-07-07).
+  const marketShift =
+    state.market?.mood === 'refiBoom'
+      ? REFI_BOOM_LEAD_BONUS
+      : state.market?.mood === 'rateSpike'
+        ? -RATE_SPIKE_LEAD_PENALTY
+        : 0;
   const chance = Math.min(
     LEAD_CHANCE_MAX,
     Math.max(
@@ -221,7 +234,8 @@ export function maybeSpawnLead(state: GameState): void {
         MARKETING_LEAD_BONUS_PER_TIER * tiersOwned(state, 'marketing') +
         branches * BRANCH_LEAD_BONUS +
         LEAD_CHANCE_PER_LEVEL * (state.stats.level - 1) +
-        (STARTING_INTEREST_RATE - state.stats.interestRate) * RATE_LEAD_SENSITIVITY,
+        (STARTING_INTEREST_RATE - state.stats.interestRate) * RATE_LEAD_SENSITIVITY +
+        marketShift,
     ),
   );
 
@@ -296,7 +310,28 @@ function spawnLead(state: GameState, rng: Rng, referrerName?: string): string | 
   const customerId = `cust-${serial}-${name.toLowerCase().replace(/[^a-z]/g, '')}`;
   const loanId = `LN-2026-${String(serial).padStart(4, '0')}`;
 
-  const amount = Math.round(rng.int(archetype.amountRange[0], archetype.amountRange[1]) / 5_000) * 5_000;
+  // Late-game specialty products (playtest 2026-07-07): once unlocked, some
+  // purchase shoppers arrive asking for a Jumbo, Construction, or USDA loan
+  // instead — bigger stakes (or longer builds) for a seasoned office.
+  const unlockedSpecialties = SPECIALTY_PRODUCTS.filter(
+    (p) => state.stats.level >= (PRODUCT_UNLOCK_LEVEL[p] ?? Number.POSITIVE_INFINITY),
+  );
+  let product = archetype.product;
+  let amountFactor = 1;
+  if (
+    archetype.purpose === 'purchase' &&
+    unlockedSpecialties.length > 0 &&
+    rng.next() < PRODUCT_TWIST_CHANCE
+  ) {
+    const specialty = unlockedSpecialties[rng.int(0, unlockedSpecialties.length - 1)];
+    if (specialty) {
+      product = specialty;
+      amountFactor = PRODUCT_AMOUNT_FACTOR[specialty] ?? 1;
+    }
+  }
+
+  const amount =
+    Math.round((rng.int(archetype.amountRange[0], archetype.amountRange[1]) * amountFactor) / 5_000) * 5_000;
   const price = Math.round((amount * 1.1) / 5_000) * 5_000;
   const downPayment = price - amount;
   const monthly = Math.round((amount * (state.stats.interestRate / 100 / 12)) / (1 - Math.pow(1 + state.stats.interestRate / 100 / 12, -360)));
@@ -324,7 +359,8 @@ function spawnLead(state: GameState, rng: Rng, referrerName?: string): string | 
       })(),
       beds: home.beds,
       baths: home.baths,
-      categoryChip: home.categoryChip,
+      // A construction loan means the house isn't built yet — same dream, fresh lumber.
+      categoryChip: product === 'construction' ? 'Custom Build' : home.categoryChip,
       price,
       downPayment,
       monthly,
@@ -336,7 +372,7 @@ function spawnLead(state: GameState, rng: Rng, referrerName?: string): string | 
   state.loans[loanId] = {
     id: loanId,
     customerId,
-    product: archetype.product,
+    product,
     purpose: archetype.purpose,
     amount,
     stage: 'lead',
@@ -350,7 +386,7 @@ function spawnLead(state: GameState, rng: Rng, referrerName?: string): string | 
     delayed: false,
   };
 
-  pushLeadEvent(state, name, archetype.product, referrerName);
+  pushLeadEvent(state, name, product, referrerName);
   awardAchievement(state, 'scout'); // GDD §10 — first fresh lead
   return name;
 }

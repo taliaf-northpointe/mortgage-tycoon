@@ -63,7 +63,40 @@ const ENTRIES: GlossaryEntry[] = [
     whyItMatters:
       'Each program has different requirements and costs. Matching the right loan type to each borrower is one of the most valuable things a good loan office does.',
     funFact: 'FHA loans have been around since 1934, and VA loans since the GI Bill of 1944.',
-    related: ['downPayment', 'pmi', 'mortgageBasics'],
+    related: ['downPayment', 'pmi', 'mortgageBasics', 'jumboLoan'],
+  },
+  {
+    key: 'jumboLoan',
+    term: 'Jumbo Loan',
+    category: 'gettingStarted',
+    definition:
+      'A mortgage larger than the standard "conforming" limit that Fannie Mae and Freddie Mac will buy. Because the lender carries more risk on a bigger balance, jumbo borrowers face stricter credit, income, and reserve requirements.',
+    whyItMatters:
+      'Bigger loan, bigger fee — and a pickier file. Jumbo customers expect white-glove service, and their paperwork gets extra scrutiny in underwriting.',
+    funFact: 'The conforming limit adjusts with home prices; in pricey coastal counties, even a modest house can require a jumbo.',
+    related: ['loanTypes', 'underwriting'],
+  },
+  {
+    key: 'constructionLoan',
+    term: 'Construction Loan',
+    category: 'gettingStarted',
+    definition:
+      'Financing for a home that is not built yet. Funds are released in stages ("draws") as the builder hits milestones, with inspections along the way, then the loan converts or refinances into a regular mortgage when the house is finished.',
+    whyItMatters:
+      'Every step takes longer — there are inspections and weather and lumber deliveries between your borrower and their keys. Patience pays: these are the biggest closings in the game.',
+    funFact: 'Lenders literally send an inspector out before each draw to confirm the framing (or roof, or drywall) actually exists.',
+    related: ['loanTypes', 'appraisal'],
+  },
+  {
+    key: 'usdaLoan',
+    term: 'USDA Loan',
+    category: 'gettingStarted',
+    definition:
+      'A government-backed mortgage for homes in eligible rural and some suburban areas, offering low (often zero) down payments to moderate-income buyers. Backed by the U.S. Department of Agriculture.',
+    whyItMatters:
+      'It opens homeownership to buyers the big programs miss — and to the quiet green edges of the map where a growing office finds its next neighbors.',
+    funFact: 'Yes, the same USDA that grades beef also guarantees home loans — rural development is part of its mission.',
+    related: ['loanTypes', 'downPayment'],
   },
 
   // ── Documents ──────────────────────────────────────────────────────

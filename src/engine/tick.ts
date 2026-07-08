@@ -15,8 +15,12 @@ import {
   GEMS_FIVE_STAR_DAY,
   HAPPINESS_MAX,
   HAPPY_CUSTOMER_MIN,
+  MARKET_COOLDOWN_DAYS,
+  MARKET_MOOD_DAYS,
   OFFICE_MORALE_BONUS_PER_2_TIERS,
   PLAYER_SOLO_SPEED,
+  RATE_SPIKE_RATE,
+  REFI_BOOM_RATE,
   PROCESSING_APPRAISAL_HOURS,
   FORGETFUL_DOC_CHANCE,
   RAINMAKER_REVENUE,
@@ -33,7 +37,6 @@ import {
   SEASONS,
   STAGE_ADVANCE_HAPPINESS_BOOST,
   STAGE_DISPLAY_NAME,
-  STAGE_HOURS_REQUIRED,
   STAR_RATING_BASE,
   SYSTEM_UPDATE_SPEED_FACTOR,
   TECH_SPEED_BONUS_PER_TIER,
@@ -64,7 +67,14 @@ import {
   leastLoadedEmployeeId,
   updateEmployeeTags,
 } from './employees';
-import { ALL_DOC_KEYS, missingDocs, nextStage, requirementsMet, unapprovedDocs } from './loans';
+import {
+  ALL_DOC_KEYS,
+  missingDocs,
+  nextStage,
+  requirementsMet,
+  stageHoursRequired,
+  unapprovedDocs,
+} from './loans';
 import { mulberry32 } from './rng';
 import { refreshNeighborhoodAvailability } from './map';
 import { tiersOwned } from './upgrades';
@@ -399,7 +409,7 @@ function workLoan(
     );
   }
 
-  if (loan.progressHours < STAGE_HOURS_REQUIRED[loan.stage] || !requirementsMet(loan)) return;
+  if (loan.progressHours < stageHoursRequired(loan) || !requirementsMet(loan)) return;
 
   // M9 — automation is the hire's gift: staffed stages advance themselves;
   // solo, the ready loan waits for YOUR click.
@@ -517,6 +527,45 @@ export function advanceDay(state: GameState): GameState {
 
   // GDD §8 — the ambient economy drifts overnight.
   driftInterestRate(s);
+
+  // Market moods (playtest 2026-07-07): a rate low sparks a refi boom (more
+  // shoppers for a few days), a spike spooks them. Each headline is followed
+  // by a quiet cooldown so the news doesn't repeat every morning.
+  if (s.market && s.market.daysLeft > 0) {
+    const wasActive = s.market.mood !== 'calm';
+    s.market = { ...s.market, daysLeft: s.market.daysLeft - 1 };
+    if (s.market.daysLeft === 0) {
+      if (wasActive) {
+        pushEvent(
+          s,
+          'alerts',
+          'The market settles down 📰',
+          'The headline faded and foot traffic is back to normal. Business as usual.',
+        );
+        s.market = { mood: 'calm', daysLeft: MARKET_COOLDOWN_DAYS };
+      } else {
+        s.market = null;
+      }
+    }
+  } else if (!s.market) {
+    if (s.stats.interestRate <= REFI_BOOM_RATE) {
+      s.market = { mood: 'refiBoom', daysLeft: MARKET_MOOD_DAYS };
+      pushEvent(
+        s,
+        'alerts',
+        '📉 Rates hit a low — refi boom!',
+        `All of Meadowbrook noticed. Expect extra shoppers at the door for the next ${MARKET_MOOD_DAYS} days.`,
+      );
+    } else if (s.stats.interestRate >= RATE_SPIKE_RATE) {
+      s.market = { mood: 'rateSpike', daysLeft: MARKET_MOOD_DAYS };
+      pushEvent(
+        s,
+        'alerts',
+        '📈 Rates spiked — shoppers are spooked',
+        `Fewer new faces for the next ${MARKET_MOOD_DAYS} days. Servicing income and happy customers carry the slow seasons.`,
+      );
+    }
+  }
 
   // GDD §9 — growing reputation opens new neighborhoods.
   refreshNeighborhoodAvailability(s);

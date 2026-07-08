@@ -15,7 +15,7 @@ export type LoanStage =
   | 'closing'
   | 'completed';
 
-export type LoanProduct = 'conventional' | 'fha' | 'va';
+export type LoanProduct = 'conventional' | 'fha' | 'va' | 'jumbo' | 'construction' | 'usda';
 export type LoanPurpose = 'purchase' | 'refinance';
 
 export type Role =
@@ -205,5 +205,7 @@ export interface GameState {
   quiz?: { termKey: string; forLevel: number } | null;
   /** M9 — the level-20 compliance audit only happens once per save. */
   auditDone?: boolean;
+  /** Market mood (optional): rate lows/spikes make headlines and move lead volume for a few days. */
+  market?: { mood: 'refiBoom' | 'rateSpike' | 'calm'; daysLeft: number } | null;
   rngSeed: number;
 }

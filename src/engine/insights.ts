@@ -3,9 +3,9 @@
  * long it will take — shown in the loan detail modal so the player never
  * stares at a stalled card wondering why (M8.1 playtest feedback).
  */
-import { PLAYER_SOLO_SPEED, STAGE_HOURS_REQUIRED, TECH_SPEED_BONUS_PER_TIER } from './constants';
+import { PLAYER_SOLO_SPEED, TECH_SPEED_BONUS_PER_TIER } from './constants';
 import { effectiveness } from './employees';
-import { missingDocs } from './loans';
+import { missingDocs, stageHoursRequired } from './loans';
 import { docDeliveryCadence } from './tick';
 import { tiersOwned } from './upgrades';
 import type { GameState, Loan, Role } from './types';
@@ -45,6 +45,6 @@ export function loanOutlook(state: GameState, loan: Loan): LoanOutlook {
   const speed = worker
     ? effectiveness(worker) * (1 + TECH_SPEED_BONUS_PER_TIER * tiersOwned(state, 'technology'))
     : PLAYER_SOLO_SPEED;
-  const remaining = Math.max(0, STAGE_HOURS_REQUIRED[loan.stage] - loan.progressHours);
+  const remaining = Math.max(0, stageHoursRequired(loan) - loan.progressHours);
   return { ...base, kind: 'working', hours: Math.max(1, Math.ceil(remaining / speed)) };
 }

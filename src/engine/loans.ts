@@ -2,7 +2,12 @@
  * Loan stage transitions and requirements (TDD §2.1, GDD §3–4 v2).
  * Pure functions only — no React, no magic numbers.
  */
-import { REQUIRED_DOCS_BY_PURPOSE, STAGE_ORDER } from './constants';
+import {
+  PRODUCT_TIME_FACTOR,
+  REQUIRED_DOCS_BY_PURPOSE,
+  STAGE_HOURS_REQUIRED,
+  STAGE_ORDER,
+} from './constants';
 import type { DocStatus, DocumentKey, Loan, LoanPurpose } from './types';
 
 export const ALL_DOC_KEYS: readonly DocumentKey[] = [
@@ -46,6 +51,14 @@ export function requirementsMet(loan: Loan): boolean {
   // M9 — underwriting signs off on every document, by the underwriter or by you.
   if (loan.stage === 'underwriting') return unapprovedDocs(loan).length === 0;
   return true;
+}
+
+/**
+ * Working hours this loan's current stage requires — construction builds take
+ * longer at every step (draws, inspections, weather; playtest 2026-07-07).
+ */
+export function stageHoursRequired(loan: Loan): number {
+  return STAGE_HOURS_REQUIRED[loan.stage] * (PRODUCT_TIME_FACTOR[loan.product] ?? 1);
 }
 
 /** The stage after this one, or null if the journey is over. */
