@@ -57,7 +57,8 @@ interface Archetype {
 const PORTRAIT_KIND: Record<number, 'f' | 'm' | 'couple' | 'family'> = {
   2: 'f', 3: 'f', 4: 'm', 5: 'family', 6: 'couple', 7: 'f', 8: 'couple', 9: 'f',
   10: 'f', 11: 'm', 12: 'couple', 13: 'couple', 14: 'couple', 15: 'couple',
-  16: 'family', 17: 'couple',
+  16: 'family', 17: 'couple', 18: 'couple', 19: 'couple', 20: 'couple',
+  21: 'f', 22: 'couple', 23: 'm',
 };
 
 /** The borrower cast (GDD §4) — one persona per portrait in Talia's art set. */
@@ -78,6 +79,12 @@ const ARCHETYPES: Archetype[] = [
   { names: ['Walt & Rosemary Dunn', 'Gene & Dottie Klein', 'Harold & June Abernathy'], portraitId: 15, age: 72, buyerTypeLabel: 'Veteran Refinancers', abouts: ['Fifty years and one house between them — he served overseas, she made it home. A better rate would ease retirement.', 'Their grandkids visit every Sunday; a lighter payment means more spoiling budget.', 'They paid off the roof, the porch, and the kitchen — now the rate is the last thing left to fix.'], traits: ['cautious', 'chatty'], product: 'va', purpose: 'refinance', amountRange: [180_000, 280_000], home: { name: 'The Family Homestead', beds: 3, baths: 2, categoryChip: 'Refinance' } },
   { names: ['The Sullivan Family', 'The Ferreira Family', 'The Novak Family'], portraitId: 16, age: 41, buyerTypeLabel: 'Growing Family', abouts: ['Four people, one bathroom — the kids drew up the escape plan themselves.', 'Homework at the kitchen table has become a territory dispute; a den would broker peace.', 'Two kids, two careers, one shared calendar that simply demands a mudroom.'], traits: ['detailOriented', 'chatty'], product: 'conventional', purpose: 'purchase', amountRange: [300_000, 390_000], home: { name: 'Whitebarn Farmhouse', beds: 5, baths: 3, categoryChip: 'Family Home' } },
   { names: ['Riley & Sage Donovan', 'Beck & Aria Foster', 'Theo & Isla Whitfield'], portraitId: 17, age: 26, buyerTypeLabel: 'First-time Homebuyers', abouts: ['They budget hard, dream big, and their bearded dragon needs a warm windowsill.', 'They meal-prep, side-hustle, and track every dollar — the down payment never stood a chance.', 'Youngest buyers on your books, oldest souls in the room; they brought a binder to the first meeting.'], traits: ['enthusiastic', 'prompt'], product: 'fha', purpose: 'purchase', amountRange: [205_000, 255_000], home: { name: 'Redbrick Corner House', beds: 3, baths: 2, categoryChip: 'Starter Home' } },
+  { names: ['Wes & Lena Hartwell', 'Finn & Josie Blackwood', 'Reid & Maya Trent'], portraitId: 18, age: 29, buyerTypeLabel: 'First-time Homebuyers', abouts: ['Weekend trail runners whose husky needs a yard with room to zoom.', 'They met on a mountain summit and want a porch with a lake view.', 'Two pairs of hiking boots by the door, one very good dog between them.'], traits: ['enthusiastic', 'prompt'], product: 'fha', purpose: 'purchase', amountRange: [220_000, 270_000], home: { name: 'Lakeview Porch House', beds: 3, baths: 2, categoryChip: 'Cozy Retreat' } },
+  { names: ['Oscar & Prue Tillman', 'Gus & Hattie Plume', 'Ned & Willa Farrow'], portraitId: 19, age: 32, buyerTypeLabel: 'First-time Homebuyers', abouts: ['He wears the "Reptile Dad" shirt unironically; the ball pythons need a warm, quiet den.', 'Cozy gamers with a terrarium collection and a spreadsheet of dream farmhouses.', 'Their idea of a housewarming party is board games and enclosure tours.'], traits: ['chatty', 'forgetful'], product: 'fha', purpose: 'purchase', amountRange: [200_000, 245_000], home: { name: 'Pine Haven Cabin', beds: 2, baths: 1, categoryChip: 'Cozy Retreat' } },
+  { names: ['Marc & Elise Devereaux', 'Victor & Dahlia Crane', 'Andre & Simone Beaufort'], portraitId: 20, age: 45, buyerTypeLabel: 'Move-up Buyers', abouts: ['Golf on Saturday, garden brunch on Sunday — they know exactly which fairway they want to live on.', 'He collects watches; she collects sunsets. The patio matters more than the square footage.', 'They toured the model home twice and asked about the HOA bylaws both times.'], traits: ['detailOriented', 'prompt'], product: 'conventional', purpose: 'purchase', amountRange: [380_000, 480_000], home: { name: 'Fairway Manor', beds: 5, baths: 4, categoryChip: 'Luxury Estate' } },
+  { names: ['Zaria Mercer', 'Coral Devine', 'Anais Laurent'], portraitId: 21, age: 33, buyerTypeLabel: 'First-time Homebuyer', abouts: ['A textile artist after a cottage with a garden worth painting.', 'She teaches yoga at dawn and throws pottery at dusk — the light has to be right.', 'Her houseplants have names, and they all want a sunnier window.'], traits: ['enthusiastic', 'cautious'], product: 'conventional', purpose: 'purchase', amountRange: [230_000, 280_000], home: { name: 'Rose Arch Cottage', beds: 2, baths: 1, categoryChip: 'Starter Home' } },
+  { names: ['Sterling & Vivienne Cross', 'Charles & Odile Vane', 'Hank & Meredith Stone'], portraitId: 22, age: 58, buyerTypeLabel: 'Forever-home Buyers', abouts: ['Thirty years of impeccable taste, one last perfect address to find.', 'They dress in black, drink their coffee black, and know exactly what they want.', 'Empty nesters with a full calendar and zero patience for slow paperwork.'], traits: ['detailOriented', 'impatient'], product: 'conventional', purpose: 'purchase', amountRange: [340_000, 430_000], home: { name: 'The Pink Palace', beds: 5, baths: 3, categoryChip: 'Victorian' } },
+  { names: ['Dante Cruz', 'Rocco Bellini', 'Julian Ashe'], portraitId: 23, age: 27, buyerTypeLabel: 'First-time Homebuyer', abouts: ['A tattoo artist saving since his first apprenticeship — first in his family to buy.', 'He plays bass on weekends and wants walls he is allowed to hang things on.', 'His sketchbook is full of home-studio floor plans.'], traits: ['enthusiastic', 'forgetful'], product: 'fha', purpose: 'purchase', amountRange: [190_000, 235_000], home: { name: 'Cedar Court Condo', beds: 2, baths: 1, categoryChip: 'Condo' } },
 ];
 
 /**
@@ -104,6 +111,11 @@ const HOUSE_FLAVOR: Record<number, { name: string; beds: number; baths: number; 
   15: { name: 'Stonebridge Craftsman', beds: 4, baths: 3, categoryChip: 'Family Home' },
   16: { name: 'Whitebarn Farmhouse', beds: 5, baths: 3, categoryChip: 'Family Home' },
   17: { name: 'Redbrick Corner House', beds: 3, baths: 2, categoryChip: 'Starter Home' },
+  18: { name: 'Lakeview Porch House', beds: 3, baths: 2, categoryChip: 'Cozy Retreat' },
+  19: { name: 'Pine Haven Cabin', beds: 2, baths: 1, categoryChip: 'Cozy Retreat' },
+  20: { name: 'Fairway Manor', beds: 5, baths: 4, categoryChip: 'Luxury Estate' },
+  21: { name: 'Rose Arch Cottage', beds: 2, baths: 1, categoryChip: 'Starter Home' },
+  22: { name: 'The Pink Palace', beds: 5, baths: 3, categoryChip: 'Victorian' },
 };
 const ALL_HOUSE_IDS = Object.keys(HOUSE_FLAVOR).map(Number);
 
@@ -176,7 +188,9 @@ function uniqueAbout(rng: Rng, archetype: Archetype, used: Set<string>, name: st
  * every pairing is spent, fall back to the least-used house overall.
  */
 function pickHouseId(state: GameState, rng: Rng, portraitId: number, variant: number): number {
-  if (variant === 0) return portraitId; // first appearance keeps the matched pair
+  // First appearance keeps the matched pair — when a matching house exists
+  // (some portraits outnumber the houses; they borrow like repeats do).
+  if (variant === 0 && HOUSE_FLAVOR[portraitId]) return portraitId;
 
   const usageByHouse = new Map<number, number>(ALL_HOUSE_IDS.map((id) => [id, 0]));
   const usedByThisPortrait = new Set<number>();

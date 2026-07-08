@@ -65,15 +65,16 @@ describe('lead generation (GDD §13 decision 8)', () => {
     expect(spawned.length).toBeGreaterThan(15); // enough to force portrait repeats
     for (const c of spawned) {
       expect(c.portraitId).toBeGreaterThanOrEqual(2);
-      expect(c.portraitId).toBeLessThanOrEqual(17);
+      expect(c.portraitId).toBeLessThanOrEqual(23);
       expect(c.about).toBeTruthy();
       expect(c.houseId).toBeGreaterThanOrEqual(1);
+      expect(c.houseId).toBeLessThanOrEqual(22); // houses 1–22 have art
       (seen[c.portraitId ?? 0] ??= []).push(c.name);
     }
 
     // round-robin: no portrait is reused until every persona has appeared
     const counts = Object.values(seen).map((names) => names.length);
-    expect(Object.keys(seen)).toHaveLength(16); // all 16 personas walked in
+    expect(Object.keys(seen)).toHaveLength(22); // all 22 personas walked in
     expect(Math.max(...counts) - Math.min(...counts)).toBeLessThanOrEqual(1);
 
     // names and abouts NEVER repeat across the whole save (only Sarah is fixed)
@@ -87,9 +88,10 @@ describe('lead generation (GDD §13 decision 8)', () => {
       const houses = spawned.filter((c) => c.portraitId === portraitId).map((c) => c.houseId);
       expect(new Set(houses).size).toBe(houses.length);
     }
-    // first appearances keep the matched pair (portrait N lives in house N)
+    // first appearances keep the matched pair (portrait N lives in house N) —
+    // except personas whose portrait outnumbers the houses (23+): they borrow.
     for (const c of spawned.filter((x) => x.portraitVariant === 0)) {
-      expect(c.houseId).toBe(c.portraitId);
+      if ((c.portraitId ?? 0) <= 22) expect(c.houseId).toBe(c.portraitId);
     }
   });
 

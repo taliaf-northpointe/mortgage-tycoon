@@ -25,6 +25,12 @@ const THANK_YOU_BY_PORTRAIT: Record<number, string> = {
   15: 'After fifty years in this house, the new payment feels like a gift. Thank you for taking such gentle care of us.',
   16: 'Everyone has their own room now and the peace treaty is holding. Thank you from all four of us!',
   17: 'The bearded dragon claimed the warmest windowsill in town, and we claimed our first home. Thank you for believing in us!',
+  18: 'The trail starts right off our porch and the husky has already claimed the yard. Muddy paws forever — thank you!',
+  19: 'The terrariums have their own warm den and the board-game shelf is up. Thank you for taking us exactly as we are!',
+  20: 'Coffee on the veranda, the fairway glowing at sunset — precisely as pictured. Superb work, truly.',
+  21: 'There is a studio where the morning light lands, and it is mine. The garden is already on canvas. Thank you!',
+  22: 'Thirty years of taste deserved a proper address, and you delivered flawlessly. We expected no less.',
+  23: 'First in my family to own a place. I hung my guitar on the wall that same night. Thank you — really.',
 };
 
 /**
