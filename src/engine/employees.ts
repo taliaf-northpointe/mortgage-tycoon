@@ -202,6 +202,8 @@ export interface HireCandidate {
   salaryMonthly: number;
   /** preview face for the hire modal; re-checked for uniqueness on hire */
   spriteId: number;
+  /** One-line profile shown in the hire modal and kept on their card (2026-07-08). */
+  about?: string;
 }
 
 /**
@@ -246,6 +248,7 @@ export function hireEmployee(state: GameState, candidate: HireCandidate): GameSt
     workload: 0,
     salaryMonthly: candidate.salaryMonthly,
     tag: null,
+    about: candidate.about,
   };
   deriveWorkloads(s);
   updateEmployeeTags(s);

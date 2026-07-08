@@ -334,6 +334,15 @@
   padding: 16px 12px;
 }
 
+.candidateAbout,
+.employeeAbout {
+  margin: 0;
+  font-size: var(--text-caption);
+  font-style: italic;
+  color: var(--color-cocoa);
+  line-height: 1.4;
+}
+
 .candidateSkill {
   color: var(--color-honey);
   font-size: var(--text-caption);

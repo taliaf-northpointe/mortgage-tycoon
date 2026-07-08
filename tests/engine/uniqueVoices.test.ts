@@ -130,7 +130,7 @@ describe('wall notes never repeat (playtest 2026-07-07)', () => {
       { loanId: 'LN-2', customerName: 'Beck & Aria Foster', portraitId: 17, portraitSeed: 'b', houseName: 'H', neighborhoodId: 'oldTown', product: 'fha', purpose: 'purchase', amount: 1, closingDay: 2, season: 'spring', note: 'Same words twice.' },
     ];
     const migrated = parseSave(JSON.stringify(save));
-    expect(migrated.meta.saveVersion).toBe(13);
+    expect(migrated.meta.saveVersion).toBe(14);
     const notes = migrated.memoryWall.map((page) => page.note);
     expect(notes[0]).toBe('Same words twice.'); // the first keeps its words
     expect(notes[1]).not.toBe('Same words twice.'); // the copy finds its own voice
@@ -138,6 +138,23 @@ describe('wall notes never repeat (playtest 2026-07-07)', () => {
 });
 
 describe('no two teammates share a name (playtest 2026-07-07)', () => {
+  it('v13 → v14 renames pre-fix duplicate hires (gender-matched to their face)', () => {
+    const base = createStarterState() as unknown as Record<string, unknown>;
+    const save = structuredClone(base);
+    (save['meta'] as Record<string, unknown>)['saveVersion'] = 13;
+    const twin = (id: string, spriteId: number) => ({
+      id, name: 'Jordan Patel', role: 'processor', spriteId, level: 1, skill: 3,
+      happiness: 85, workload: 0, salaryMonthly: 4_000, tag: null,
+    });
+    save['employees'] = { 'emp-a': twin('emp-a', 5), 'emp-b': twin('emp-b', 11) };
+    const migrated = parseSave(JSON.stringify(save));
+    const names = Object.values(migrated.employees).map((e) => e.name);
+    expect(new Set(names).size).toBe(2); // twins no more
+    expect(names).toContain('Jordan Patel'); // the first keeps their name
+    const renamed = Object.values(migrated.employees).find((e) => e.name !== 'Jordan Patel');
+    expect(renamed).toBeDefined(); // and the second found a fresh identity
+  });
+
   it('candidates never duplicate someone already on the team', () => {
     const taken = ['Avery Brooks', 'Jordan Patel', 'Casey Nguyen', 'Riley Thompson'];
     for (let seed = 1; seed <= 25; seed++) {

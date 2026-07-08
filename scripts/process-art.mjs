@@ -93,22 +93,47 @@ function cropDeskRows(png, widthRatio = 0.7) {
 }
 
 /**
- * Normalize a bust sprite onto a uniform canvas (2026-07-08): every character
- * renders at the same size behind a desk regardless of how much torso the
- * source art kept. Content anchors at the top (heads align); anything past
- * the target height is cut with a soft alpha fade; shorter busts just get
- * transparent padding below.
+ * Median content width across the top band of a bust — a robust "how wide is
+ * this person's head" measure (hair included, stray wisps ignored).
  */
-function normalizeBust(png, targetH = 180) {
-  const { width, height } = png;
-  if (height === targetH) return png;
-  const out = new PNG({ width, height: targetH });
-  PNG.bitblt(png, out, 0, 0, width, Math.min(height, targetH), 0, 0);
-  if (height > targetH) {
+function headWidth(png) {
+  const { width, height, data } = png;
+  const widths = [];
+  const bandEnd = Math.max(1, Math.floor(height * 0.45));
+  for (let y = 0; y < bandEnd; y++) {
+    let minX = -1;
+    let maxX = -1;
+    for (let x = 0; x < width; x++) {
+      if (data[idx(png, x, y) + 3] > 40) {
+        if (minX < 0) minX = x;
+        maxX = x;
+      }
+    }
+    if (maxX >= 0) widths.push(maxX - minX + 1);
+  }
+  if (widths.length === 0) return width;
+  widths.sort((a, b) => a - b);
+  return widths[Math.floor(widths.length / 2)];
+}
+
+/**
+ * Normalize a bust sprite onto a uniform canvas (2026-07-08): every character
+ * renders at the same size behind a desk regardless of how the source was
+ * framed. Content anchors at the top (heads align) and centers horizontally;
+ * anything past the canvas is cut with a soft alpha fade / centered crop.
+ */
+function normalizeBust(png, targetW = 300, targetH = 180) {
+  const out = new PNG({ width: targetW, height: targetH });
+  const copyW = Math.min(png.width, targetW);
+  const copyH = Math.min(png.height, targetH);
+  const srcX = Math.max(0, Math.floor((png.width - targetW) / 2));
+  const dstX = Math.max(0, Math.floor((targetW - png.width) / 2));
+  PNG.bitblt(png, out, srcX, 0, copyW, copyH, dstX, 0);
+  if (png.height > targetH) {
     const fade = Math.min(26, targetH);
     for (let y = targetH - fade; y < targetH; y++) {
       const g = (targetH - y) / fade;
-      for (let x = 0; x < width; x++) {
+      for (let x = 0; x < targetW; x++) {
         const i = idx(out, x, y);
         out.data[i + 3] = Math.round(out.data[i + 3] * g);
       }
@@ -116,6 +141,9 @@ function normalizeBust(png, targetH = 180) {
   }
   return out;
 }
+
+/** Final head width every character is scaled to (of the 300px canvas). */
+const TARGET_HEAD_WIDTH = 165;
 
 /** Trim transparent margins. */
 function trim(png, pad = 4) {
@@ -197,9 +225,13 @@ const RETIRED_CHARACTERS = new Set([1, 2, 8]);
 for (let n = 1; n <= 30; n++) {
   const src = `Character ${n}.png`;
   if (RETIRED_CHARACTERS.has(n) || !existsSync(join(ROOT, src))) continue;
-  // normalizeBust: everyone lands on the same 300×180 canvas so the office
-  // scene renders every face at one consistent size (2026-07-08 playtest).
-  save(`char-${n}.png`, normalizeBust(resize(trim(cropDeskRows(stripBackground(load(src), 34))), 300)));
+  // Scale each bust so its HEAD lands at the same width — source framing
+  // varies (tight face crops vs. wide shoulders), so canvas-only
+  // normalization left some faces looking huge and others tiny
+  // (2026-07-08 playtest). Then everyone shares the same 300×180 canvas.
+  const bust = trim(cropDeskRows(stripBackground(load(src), 34)));
+  const scaledW = Math.round(bust.width * (TARGET_HEAD_WIDTH / headWidth(bust)));
+  save(`char-${n}.png`, normalizeBust(resize(bust, Math.max(120, Math.min(scaledW, 340)))));
 }
 
 for (let n = 1; n <= 30; n++) {

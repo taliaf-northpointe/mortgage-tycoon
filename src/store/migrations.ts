@@ -4,12 +4,13 @@
  * FROM; each migration returns data at saveVersion + 1.
  */
 
-import { genderForName, RETIRED_SPRITES, spritesForGender } from '../engine/content/characterSprites';
+import { CANDIDATE_NAMES } from '../engine/content/candidates';
+import { genderForName, RETIRED_SPRITES, SPRITE_GENDER, spritesForGender } from '../engine/content/characterSprites';
 import { thankYouNote } from '../engine/content/memoryWall';
 import { UPGRADES } from '../engine/content/upgrades';
 import { initialUpgradeStates } from '../engine/upgrades';
 
-export const CURRENT_SAVE_VERSION = 13;
+export const CURRENT_SAVE_VERSION = 14;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -374,6 +375,42 @@ function migrateV12toV13(data: Record<string, unknown>): Record<string, unknown>
   return next;
 }
 
+/**
+ * v13 → v14 (2026-07-08): teams hired before the uniqueness fix can hold two
+ * employees with the same name. Keep the first of each; later twins take an
+ * unused candidate name whose gender matches their portrait.
+ */
+function migrateV13toV14(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+  const employees = (next['employees'] ?? {}) as Record<string, Record<string, unknown>>;
+  const staff = Object.values(employees).sort((a, b) =>
+    String(a['id'] ?? '').localeCompare(String(b['id'] ?? '')),
+  );
+  const used = new Set(staff.map((e) => String(e['name'] ?? '')));
+  const seen = new Set<string>();
+  for (const employee of staff) {
+    const name = String(employee['name'] ?? '');
+    if (!seen.has(name)) {
+      seen.add(name);
+      continue;
+    }
+    // a twin — find them a fresh identity that still matches their face
+    const gender =
+      typeof employee['spriteId'] === 'number' ? SPRITE_GENDER[employee['spriteId']] : undefined;
+    const fresh =
+      CANDIDATE_NAMES.find((n) => !used.has(n) && (gender === undefined || genderForName(n) === gender)) ??
+      CANDIDATE_NAMES.find((n) => !used.has(n));
+    const renamed = fresh ?? `${name} Jr.`;
+    employee['name'] = renamed;
+    used.add(renamed);
+    seen.add(renamed);
+  }
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['saveVersion'] = 14;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
   2: migrateV2toV3,
@@ -387,6 +424,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   10: migrateV10toV11,
   11: migrateV11toV12,
   12: migrateV12toV13,
+  13: migrateV13toV14,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

@@ -10,7 +10,7 @@ import type { HireCandidate } from '../employees';
 import { mulberry32 } from '../rng';
 import type { Role } from '../types';
 
-const CANDIDATE_NAMES = [
+export const CANDIDATE_NAMES = [
   'Avery Brooks',
   'Jordan Patel',
   'Casey Nguyen',
@@ -45,6 +45,42 @@ const CANDIDATE_NAMES = [
   'Tilda Moreau',
 ];
 
+/** One cozy line per candidate — their profile in the hire modal (2026-07-08). */
+export const CANDIDATE_ABOUT: Record<string, string> = {
+  'Avery Brooks': 'Color-codes everything and remembers everyone’s birthday.',
+  'Jordan Patel': 'Calm on deadline day; keeps a bonsai on the desk.',
+  'Casey Nguyen': 'Reads contracts like novels and finds the plot holes.',
+  'Riley Thompson': 'First one in, playlist already humming.',
+  'Morgan Alvarez': 'Once closed three files during a fire drill.',
+  'Quinn Fischer': 'Speaks fluent spreadsheet and decent guitar.',
+  'Harper Osei': 'Keeps the candy jar that unites the whole floor.',
+  'Rowan Kim': 'Quiet until the numbers get interesting.',
+  'Sydney Larsson': 'Marathon runner; treats backlogs the same way.',
+  'Emerson Cole': 'Learned the business at a kitchen-table brokerage.',
+  'Jamie Okada': 'Writes thank-you sticky notes nobody asked for.',
+  'Alexis Romero': 'Can explain escrow to anyone, including toddlers.',
+  'Taylor Singh': 'Brings homemade chai on rainy Mondays.',
+  'Devon Marsh': 'Ex-teacher; grades files with a red pen, kindly.',
+  'Skyler Anand': 'Names every office plant and waters them all.',
+  'Reese Delgado': 'Whistles while filing. Somehow not annoying.',
+  'Ainsley Rhodes': 'Sharp-eyed, soft-spoken, always two steps ahead.',
+  'Callum Frost': 'Keeps winter photos on the desk to stay cool-headed.',
+  'Della Winters': 'Former barista; now pulls perfect closing dates.',
+  'Ezra Caldwell': 'Chess-club patience with a courier’s pace.',
+  'Fern Whitley': 'Gardens on weekends; grows pipelines on weekdays.',
+  'Hollis Grant': 'Old-school notebook, new-school results.',
+  'Juniper Lane': 'Sunniest desk in the office, by choice and by nature.',
+  'Kendall Ford': 'Former debate captain; wins with kindness.',
+  'Lorenzo Ricci': 'Makes espresso for the whole row at 3 PM sharp.',
+  'Maren Voss': 'Sails on Sundays; navigates paperwork the same way.',
+  'Nate Sterling': 'The calm voice customers ask for by name.',
+  'Opal Hendricks': 'Knits during webinars; retains every word.',
+  'Percy Malone': 'Collects vintage calculators. Uses none of them.',
+  'Romy Fielder': 'Photographs every office birthday. Frames the best.',
+  'Stefan Brandt': 'Builds model houses; helps people buy real ones.',
+  'Tilda Moreau': 'Hums jazz while reconciling anything.',
+};
+
 /**
  * Three candidates for a role. Higher skill costs more, sensibly. Names
  * already on the team never show up again (playtest 2026-07-07 — two Avery
@@ -77,6 +113,6 @@ export function generateCandidates(
     const salaryMonthly =
       Math.round((range.min + (range.max - range.min) * (0.3 + 0.7 * skillShare)) / 50) * 50;
 
-    return { name, gender, role, skill, salaryMonthly, spriteId };
+    return { name, gender, role, skill, salaryMonthly, spriteId, about: CANDIDATE_ABOUT[name] };
   });
 }

@@ -23,14 +23,27 @@ export function OfficeScene({ employees, stage = 1 }: { employees: Employee[]; s
   const sorted = [...employees].sort((a, b) => a.id.localeCompare(b.id));
   const canvas = STAGE_CANVAS[stage] ?? STAGE_CANVAS[1] ?? { w: 1323, h: 1189 };
 
-  // A big team must still fit the room (playtest 2026-07-08): wide teams get
-  // a fifth desk per row, and the whole grid gently scales down toward the
-  // floor's center until every last hire is visible.
-  const perRow = sorted.length > 16 ? 5 : DESKS_PER_ROW;
+  // A big team must still fit the room — and USE it (playtest 2026-07-08):
+  // wider teams seat more desks per row, and the grid scales exactly into
+  // the floor (top edge never climbs the back wall, bottom edge never spills
+  // off the platform), centered horizontally.
+  const perRow = sorted.length <= 16 ? DESKS_PER_ROW : sorted.length <= 25 ? 5 : 6;
   const rows = Math.max(1, Math.ceil(sorted.length / perRow));
-  const neededH = 560 + (rows - 1) * 170 + 230; // last row's desk + name chip
-  const gridScale = Math.min(1, (canvas.h - 30) / neededH);
-  const gridTransform = `translate(${(canvas.w / 2) * (1 - gridScale)} ${canvas.h * 0.62 * (1 - gridScale)}) scale(${gridScale})`;
+  const cols = Math.min(sorted.length, perRow);
+  // grid bounding box in layout coordinates (sprites rise ~140 above desk y)
+  const gridTop = 400;
+  const gridLeft = 180;
+  const gridRight = 220 + (cols - 1) * 245 + (rows > 1 ? 122 : 0) + 260;
+  const gridBottom = 560 + (rows - 1) * 170 + 195; // last row's name chip
+  const floorTop = 430; // back rows shouldn't climb the wall art
+  const s = Math.min(
+    1,
+    (canvas.h - 20 - floorTop) / (gridBottom - gridTop),
+    (canvas.w - 30) / (gridRight - gridLeft),
+  );
+  const tx = s === 1 ? 0 : (canvas.w - s * (gridRight - gridLeft)) / 2 - s * gridLeft;
+  const ty = Math.min(0, canvas.h - 20 - s * gridBottom);
+  const gridTransform = `translate(${tx} ${ty}) scale(${s})`;
 
   return (
     <svg

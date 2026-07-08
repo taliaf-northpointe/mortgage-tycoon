@@ -125,6 +125,8 @@ export function Employees({ onBack }: { onBack(): void }) {
               {employee.tag && <span className={styles[`tag_${employee.tag}`]}>{TAG_LABEL[employee.tag]}</span>}
             </div>
 
+            {employee.about && <p className={styles.employeeAbout}>{employee.about}</p>}
+
             <div className={styles.skillRow} aria-label={`Skill ${employee.skill} of 5`}>
               {Array.from({ length: 5 }, (_, i) => (
                 <span key={i} className={i < Math.round(employee.skill) ? styles.starOn : styles.star}>
@@ -287,6 +289,7 @@ function HireModal({
               <Face spriteId={candidate.spriteId} size={56} />
               <strong>{candidate.name}</strong>
               <span className={styles.role}>{ROLE_DISPLAY_NAME[candidate.role]}</span>
+              {candidate.about && <p className={styles.candidateAbout}>{candidate.about}</p>}
               <span className={styles.candidateSkill}>
                 {'★'.repeat(Math.round(candidate.skill))}
                 {'☆'.repeat(5 - Math.round(candidate.skill))} {candidate.skill.toFixed(2)}

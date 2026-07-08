@@ -114,6 +114,8 @@ export interface Employee {
   workload: number; // 0–100, derived each tick from assigned loans
   salaryMonthly: number;
   tag: 'star' | 'readyToPromote' | 'overworked' | 'needsBreak' | null;
+  /** One-line profile from their hire-modal card (optional; 2026-07-08). */
+  about?: string;
 }
 
 /** GDD §6 — office mishaps that make a good day harder. */
@@ -170,7 +172,7 @@ export interface GlossaryProgress {
 
 export interface GameState {
   meta: {
-    saveVersion: 13;
+    saveVersion: 14;
     playerName: string;
     officeName: string;
     createdAt: string;
