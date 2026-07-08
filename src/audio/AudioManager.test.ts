@@ -1,5 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
-import { AudioManager, PLAYLIST } from './AudioManager';
+import { AudioManager, PLAYLIST, shuffledPlaylistCycle } from './AudioManager';
 
 describe('AudioManager', () => {
   beforeEach(() => {
@@ -29,13 +29,35 @@ describe('AudioManager', () => {
     expect(saved.ambienceVolume).toBe(0.6);
   });
 
-  it('rotates the playlist in order, then repeats', () => {
+  it('shuffles the playlist: every track once per cycle, no back-to-back repeats', () => {
     const manager = AudioManager.getInstance();
-
     expect(PLAYLIST).toHaveLength(6);
-    expect(manager.nextTrackIndex(0)).toBe(1);
-    expect(manager.nextTrackIndex(4)).toBe(5);
-    expect(manager.nextTrackIndex(5)).toBe(0); // wraps back to the top
+
+    // A full cycle plays each of the 6 tracks exactly once…
+    const cycle = Array.from({ length: PLAYLIST.length }, () => manager.nextTrackIndex(0));
+    expect([...cycle].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5]);
+    // …and never opens with the track that just finished.
+    expect(cycle[0]).not.toBe(0);
+
+    // The next cycle also avoids echoing the last song played.
+    const lastPlayed = cycle[PLAYLIST.length - 1] ?? 0;
+    expect(manager.nextTrackIndex(lastPlayed)).not.toBe(lastPlayed);
+  });
+
+  it('shuffledPlaylistCycle is a permutation that respects the no-repeat rule', () => {
+    // deterministic rng stub: cycles through fixed fractions
+    const seq = [0.1, 0.9, 0.4, 0.7, 0.2, 0.6, 0.8, 0.3];
+    let n = 0;
+    const rng = () => seq[n++ % seq.length] ?? 0.5;
+
+    for (let lastPlayed = 0; lastPlayed < 6; lastPlayed++) {
+      const cycle = shuffledPlaylistCycle(6, lastPlayed, rng);
+      expect([...cycle].sort((a, b) => a - b)).toEqual([0, 1, 2, 3, 4, 5]);
+      expect(cycle[0]).not.toBe(lastPlayed);
+    }
+
+    // a single-track playlist can't avoid repeating itself — and shouldn't crash
+    expect(shuffledPlaylistCycle(1, 0, rng)).toEqual([0]);
   });
 
   it('raises the dynamic intensity when the office gets busier', () => {

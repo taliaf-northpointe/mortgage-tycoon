@@ -114,6 +114,24 @@ export const PLAYLIST: AudioAssetDefinition[] = [
   { path: '/assets/audio/music/playlist-6.mp3', category: 'music', volume: 0.6 }, // coffee lofi chill
 ];
 
+/**
+ * One full playlist cycle in random order (Fisher–Yates over `rng`, 0..1).
+ * Never starts with `lastPlayed`, so cycles never repeat a song back-to-back.
+ * Pure and injectable for tests; the AudioManager feeds it Math.random.
+ */
+export function shuffledPlaylistCycle(length: number, lastPlayed: number, rng: () => number): number[] {
+  const cycle = Array.from({ length }, (_, i) => i);
+  for (let i = cycle.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [cycle[i], cycle[j]] = [cycle[j]!, cycle[i]!];
+  }
+  if (length > 1 && cycle[0] === lastPlayed) {
+    const k = 1 + Math.floor(rng() * (length - 1));
+    [cycle[0], cycle[k]] = [cycle[k]!, cycle[0]!];
+  }
+  return cycle;
+}
+
 const SOUND_LIBRARY: Record<SoundCueId, AudioAssetDefinition> = {
   buttonHover: { path: '/assets/audio/ui/button-hover.wav', category: 'sfx', volume: 0.1 },
   buttonClick: { path: '/assets/audio/ui/button-click.wav', category: 'sfx', volume: 0.22 },
@@ -164,6 +182,9 @@ export class AudioManager {
   private ambienceElement: HTMLAudioElement | null = null;
   private ambienceMode: 'office' | 'town' | null = null;
   private gestureHooked = false;
+
+  /** Upcoming tracks for the current shuffle cycle (refilled when it empties). */
+  private shuffleQueue: number[] = [];
 
   private constructor() {
     this.state = {
@@ -294,9 +315,16 @@ export class AudioManager {
     );
   }
 
-  /** The playlist index that should play next after `index` (in order, repeat). */
+  /**
+   * The playlist index that should play next after `index` — a shuffle bag:
+   * every track plays once per cycle in a fresh random order, and the same
+   * song never plays twice in a row (2026-07-07 request).
+   */
   nextTrackIndex(index: number): number {
-    return (index + 1) % PLAYLIST.length;
+    if (this.shuffleQueue.length === 0) {
+      this.shuffleQueue = shuffledPlaylistCycle(PLAYLIST.length, index, Math.random);
+    }
+    return this.shuffleQueue.shift() ?? 0;
   }
 
   /** Start the playlist if nothing is playing (safe to call any time). */
@@ -304,7 +332,8 @@ export class AudioManager {
     if (!this.canPlayAudio()) return;
     if (this.state.settings.muteMusic || this.state.settings.masterVolume <= 0) return;
     if (this.currentMusicElement && !this.currentMusicElement.paused) return;
-    this.playTrack(this.state.currentTrack ?? 0);
+    // Each session opens on a random track too — not always the same song.
+    this.playTrack(this.state.currentTrack ?? Math.floor(Math.random() * PLAYLIST.length));
   }
 
   private playTrack(index: number): void {
