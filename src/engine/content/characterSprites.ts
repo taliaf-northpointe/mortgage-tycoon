@@ -63,6 +63,22 @@ export const FIRST_NAME_GENDER: Record<string, SpriteGender> = {
   Devon: 'm',
   Skyler: 'f',
   Reese: 'm',
+  Ainsley: 'f',
+  Callum: 'm',
+  Della: 'f',
+  Ezra: 'm',
+  Fern: 'f',
+  Hollis: 'm',
+  Juniper: 'f',
+  Kendall: 'f',
+  Lorenzo: 'm',
+  Maren: 'f',
+  Nate: 'm',
+  Opal: 'f',
+  Percy: 'm',
+  Romy: 'f',
+  Stefan: 'm',
+  Tilda: 'f',
 };
 
 export function genderForName(name: string): SpriteGender {

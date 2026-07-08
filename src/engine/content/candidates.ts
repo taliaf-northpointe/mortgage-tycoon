@@ -27,17 +27,45 @@ const CANDIDATE_NAMES = [
   'Devon Marsh',
   'Skyler Anand',
   'Reese Delgado',
+  'Ainsley Rhodes',
+  'Callum Frost',
+  'Della Winters',
+  'Ezra Caldwell',
+  'Fern Whitley',
+  'Hollis Grant',
+  'Juniper Lane',
+  'Kendall Ford',
+  'Lorenzo Ricci',
+  'Maren Voss',
+  'Nate Sterling',
+  'Opal Hendricks',
+  'Percy Malone',
+  'Romy Fielder',
+  'Stefan Brandt',
+  'Tilda Moreau',
 ];
 
-/** Three candidates for a role. Higher skill costs more, sensibly. */
-export function generateCandidates(seed: number, role: Role): HireCandidate[] {
+/**
+ * Three candidates for a role. Higher skill costs more, sensibly. Names
+ * already on the team never show up again (playtest 2026-07-07 — two Avery
+ * Brookses in one office is one too many).
+ */
+export function generateCandidates(
+  seed: number,
+  role: Role,
+  takenNames: readonly string[] = [],
+): HireCandidate[] {
   const rng = mulberry32(seed >>> 0);
   const range = SALARY_RANGE_BY_ROLE[role];
+  const taken = new Set(takenNames);
+  const pool = CANDIDATE_NAMES.filter((n) => !taken.has(n));
+  // A 32-name pool should never run dry; if it somehow does, repeats beat a hang.
+  const names = pool.length >= 3 ? pool : CANDIDATE_NAMES;
   const usedNames = new Set<string>();
 
   return Array.from({ length: 3 }, () => {
-    let name = rng.pick(CANDIDATE_NAMES);
-    while (usedNames.has(name)) name = rng.pick(CANDIDATE_NAMES);
+    let name = rng.pick(names);
+    while (usedNames.has(name)) name = rng.pick(names);
     usedNames.add(name);
 
     const gender = genderForName(name);

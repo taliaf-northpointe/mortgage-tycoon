@@ -1,5 +1,5 @@
-/**
- * Data-only starter content (TDD §2.1 — engine/content is data, not logic).
+﻿/**
+ * Data-only starter content (TDD Â§2.1 â€” engine/content is data, not logic).
  * M1: the hardcoded first customer, her loan, and a minimal starter team so
  * every pipeline stage has an owner. M2's New Game flow builds on this.
  */
@@ -18,7 +18,7 @@ export const STARTER_CUSTOMER_ID = 'cust-sarah-chen';
 export function createStarterState(rngSeed = 42): GameState {
   return {
     meta: {
-      saveVersion: 11,
+      saveVersion: 12,
       playerName: 'You',
       officeName: 'Old Town Office',
       // Fixed for determinism; the real New Game flow (M2) stamps the actual date.
@@ -59,14 +59,14 @@ export function createStarterState(rngSeed = 42): GameState {
       [STARTER_LOAN_ID]: {
         id: STARTER_LOAN_ID,
         customerId: STARTER_CUSTOMER_ID,
-        // FHA Purchase — the classic first-time-homebuyer loan (GDD §3 v2)
+        // FHA Purchase â€” the classic first-time-homebuyer loan (GDD Â§3 v2)
         product: 'fha',
         purpose: 'purchase',
         amount: 220_000,
         stage: 'lead',
         daysInPipeline: 0,
         documents: initialDocuments('purchase'),
-        assignedEmployeeId: null, // solo start — the founder owns everything (M9)
+        assignedEmployeeId: null, // solo start â€” the founder owns everything (M9)
         statusTag: null,
         rate: STARTING_INTEREST_RATE,
         termYears: 30,
@@ -74,7 +74,7 @@ export function createStarterState(rngSeed = 42): GameState {
         delayed: false,
       },
     },
-    // M9 (playtest 2026-07-06 #3): it's YOUR company — you start alone.
+    // M9 (playtest 2026-07-06 #3): it's YOUR company â€” you start alone.
     // Every stage is worked by hand until you hire the role that automates it.
     employees: {},
     upgrades: initialUpgradeStates(),

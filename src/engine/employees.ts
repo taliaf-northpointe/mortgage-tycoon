@@ -349,7 +349,11 @@ export function branchManagerMorning(state: GameState): GameState {
   for (let hires = 0; hires < BRANCH_MANAGER_MAX_HIRES_PER_MORNING; hires++) {
     const busiest = overworked()[0];
     if (!busiest || s.currencies.coins < HIRING_FEE) break;
-    const candidates = generateCandidates((s.rngSeed ^ (s.clock.day * 52_361 + hires)) >>> 0, busiest.role);
+    const candidates = generateCandidates(
+      (s.rngSeed ^ (s.clock.day * 52_361 + hires)) >>> 0,
+      busiest.role,
+      Object.values(s.employees).map((e) => e.name),
+    );
     const pick = candidates[0];
     if (!pick) break;
     const teamBefore = Object.keys(s.employees).length;

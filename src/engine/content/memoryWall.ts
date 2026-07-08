@@ -27,12 +27,28 @@ const THANK_YOU_BY_PORTRAIT: Record<number, string> = {
   17: 'The bearded dragon claimed the warmest windowsill in town, and we claimed our first home. Thank you for believing in us!',
 };
 
-/** Fallback notes for customers from before the portrait era. */
+/**
+ * The shared note pool: fallbacks for customers from before the portrait era,
+ * AND fresh voices for repeat portraits — a note never appears on the wall
+ * twice (playtest 2026-07-07: same face, new family, new words).
+ */
 const GENERIC_THANK_YOUS: string[] = [
   'We still can’t believe the keys are ours. Thank you for making it feel easy!',
   'You turned a mountain of paperwork into a housewarming party. Thank you!',
   'Every question answered, every step explained. We tell everyone about you.',
   'Home at last — and it feels even better than we dreamed. Thank you so much!',
+  'The first dinner in our own kitchen tasted better than any restaurant. Thank you!',
+  'We measured every wall twice and the couch still barely fit — but it’s OUR doorway now. Thank you!',
+  'The neighbors brought pie. The house brought peace. You brought both within reach.',
+  'Our first mortgage payment came with a smile, believe it or not. Thank you for everything.',
+  'The kids picked their rooms before we finished unloading the truck. Home, instantly. Thank you!',
+  'We planted a tree the day we moved in. It grows, we stay. Thank you for the roots.',
+  'Every box is unpacked and not one regret in any of them. You made this simple.',
+  'The porch light was on for us our very first night. It will be on for you always.',
+  'We hosted the holidays two weeks after closing. Everyone asked who our lender was.',
+  'Rain on our own roof sounds different — better. Thank you for getting us here.',
+  'From the first hello to the last signature, we always knew what came next. Thank you!',
+  'We finally hung the pictures we carried through four apartments. They’re staying put. So are we.',
 ];
 
 function seedNumber(seed: string): number {
@@ -41,19 +57,30 @@ function seedNumber(seed: string): number {
   return n;
 }
 
-export function thankYouNote(customer: Pick<Customer, 'portraitId' | 'portraitSeed'>): string {
-  if (customer.portraitId && THANK_YOU_BY_PORTRAIT[customer.portraitId]) {
-    return THANK_YOU_BY_PORTRAIT[customer.portraitId] ?? GENERIC_THANK_YOUS[0] ?? '';
+/**
+ * A thank-you note for this family. The portrait-keyed note is used the first
+ * time that face appears on the wall; repeats (and portrait-less customers)
+ * draw an unused note from the shared pool, so no two pages ever match.
+ */
+export function thankYouNote(
+  customer: Pick<Customer, 'portraitId' | 'portraitSeed'> & { name?: string },
+  usedNotes: ReadonlySet<string> = new Set(),
+): string {
+  const preferred = customer.portraitId ? THANK_YOU_BY_PORTRAIT[customer.portraitId] : undefined;
+  if (preferred && !usedNotes.has(preferred)) return preferred;
+
+  const start = seedNumber(customer.portraitSeed) % GENERIC_THANK_YOUS.length;
+  for (let i = 0; i < GENERIC_THANK_YOUS.length; i++) {
+    const note = GENERIC_THANK_YOUS[(start + i) % GENERIC_THANK_YOUS.length];
+    if (note && !usedNotes.has(note)) return note;
   }
-  return (
-    GENERIC_THANK_YOUS[seedNumber(customer.portraitSeed) % GENERIC_THANK_YOUS.length] ??
-    GENERIC_THANK_YOUS[0] ??
-    ''
-  );
+  // A very full wall: the family name keeps even this fallback one-of-a-kind.
+  return `The keys are ours and the kettle is on — come by any time! — ${customer.name ?? 'Your newest neighbors'}`;
 }
 
 /** Build the scrapbook page for a loan that just funded. */
 export function buildMemoryEntry(state: GameState, loan: Loan, customer: Customer): MemoryEntry {
+  const usedNotes = new Set(state.memoryWall.map((page) => page.note));
   return {
     loanId: loan.id,
     customerName: customer.name,
@@ -67,6 +94,6 @@ export function buildMemoryEntry(state: GameState, loan: Loan, customer: Custome
     closingDay: state.clock.day,
     season: state.clock.season,
     houseId: customer.houseId ?? customer.portraitId ?? null,
-    note: thankYouNote(customer),
+    note: thankYouNote(customer, usedNotes),
   };
 }

@@ -8,7 +8,7 @@ import { genderForName, RETIRED_SPRITES, spritesForGender } from '../engine/cont
 import { thankYouNote } from '../engine/content/memoryWall';
 import { initialUpgradeStates } from '../engine/upgrades';
 
-export const CURRENT_SAVE_VERSION = 11;
+export const CURRENT_SAVE_VERSION = 12;
 
 type Migration = (data: Record<string, unknown>) => Record<string, unknown>;
 
@@ -290,6 +290,40 @@ function migrateV10toV11(data: Record<string, unknown>): Record<string, unknown>
   return next;
 }
 
+/**
+ * v11 → v12 (unique wall notes, playtest 2026-07-07): repeat portraits used to
+ * copy the same portrait-keyed thank-you note word for word. Walk the wall in
+ * closing order and re-pick any duplicate from the shared pool, so every
+ * family sounds like themselves.
+ */
+function migrateV11toV12(data: Record<string, unknown>): Record<string, unknown> {
+  const next = structuredClone(data);
+  const wall = Array.isArray(next['memoryWall'])
+    ? (next['memoryWall'] as Record<string, unknown>[])
+    : [];
+  const used = new Set<string>();
+  for (const page of wall) {
+    if (!page || typeof page !== 'object') continue;
+    let note = typeof page['note'] === 'string' ? page['note'] : '';
+    if (!note || used.has(note)) {
+      note = thankYouNote(
+        {
+          portraitId: typeof page['portraitId'] === 'number' ? page['portraitId'] : undefined,
+          portraitSeed: String(page['portraitSeed'] ?? page['loanId'] ?? 'someone'),
+          name: typeof page['customerName'] === 'string' ? page['customerName'] : undefined,
+        },
+        used,
+      );
+      page['note'] = note;
+    }
+    used.add(note);
+  }
+  const meta = (next['meta'] ?? {}) as Record<string, unknown>;
+  meta['saveVersion'] = 12;
+  next['meta'] = meta;
+  return next;
+}
+
 export const MIGRATIONS: Record<number, Migration> = {
   1: migrateV1toV2,
   2: migrateV2toV3,
@@ -301,6 +335,7 @@ export const MIGRATIONS: Record<number, Migration> = {
   8: migrateV8toV9,
   9: migrateV9toV10,
   10: migrateV10toV11,
+  11: migrateV11toV12,
 };
 
 export function applyMigrations(data: Record<string, unknown>): Record<string, unknown> {

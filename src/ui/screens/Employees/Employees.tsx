@@ -184,6 +184,7 @@ export function Employees({ onBack }: { onBack(): void }) {
         <HireModal
           coins={game.currencies.coins}
           playerLevel={game.stats.level}
+          takenNames={employees.map((e) => e.name)}
           onHire={(candidate) => {
             hireEmployee(candidate);
             setHiring(false);
@@ -238,17 +239,23 @@ function Meter({ label, value, tone }: { label: string; value: number; tone: 'sa
 function HireModal({
   coins,
   playerLevel,
+  takenNames,
   onHire,
   onClose,
 }: {
   coins: number;
   playerLevel: number;
+  /** Names already on the team — no candidate ever duplicates a teammate. */
+  takenNames: string[];
   onHire(candidate: HireCandidate): void;
   onClose(): void;
 }) {
   const [role, setRole] = useState<Role>('processor');
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 0xffffffff));
-  const candidates = useMemo(() => generateCandidates(seed ^ role.length, role), [seed, role]);
+  const candidates = useMemo(
+    () => generateCandidates(seed ^ role.length, role, takenNames),
+    [seed, role, takenNames],
+  );
 
   return (
     <div className={styles.overlay} onClick={onClose} role="presentation">
